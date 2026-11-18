@@ -2,6 +2,16 @@
 ### Architecture Specification v1.1 · 18 November 2026
 *The sales twin of `qottuf-agentic-marketing-department-v1.md` (repo `qottuf-marketing-ai`). Written to be handed to Claude Code as the source of truth. Built from a read of all six Qottuf repositories and a study of Saudi procurement and the Riyadh market as of November 2026. v1.0 was attacked three times: by its author, by an independent systems and agent-design reviewer, and by an independent buyer-side reviewer working from the Saudi market. 54 weaknesses and 9 factual errors were found; every one is fixed below and logged in §16.*
 
+> **Update, 19 November 2026 (read this first).** Asil's answers of 18 November changed the mandate, and the executive meeting with marketing that night merged both departments into one (`meetings/2026-11-19-cso-cmo-executive-meeting.md`). **Where this spec differs from `qottuf-business-development-department-v1.md`, that document wins.** In short:
+> - **Contracting** is main-contractor work of SAR 20–100 m only: no villas, no small works, no minor-works frameworks, no direct-purchase channel, no subcontract packages.
+> - **Asil is Head of BD and the only seller.** The GM takes no meetings.
+> - **Elevator maintenance** already exists.
+> - **Certifications** are held and used as evidence, never as talking points.
+> - **No campaign has launched,** so the elevator desk is sized from the first 30 days of real data.
+> - **Phase 1 is Proof and Pipeline.**
+>
+> The agent cards, workflows, gates, data contracts and red-team log below remain the detailed design reference for the merged roster. Tier 1 is in `qottuf-tier1-2028-roadmap.md`; every weakness is in `qottuf-weakness-register.md`.
+
 > **The one-paragraph version.** Qottuf doesn't first need more leads. It needs a conversion system and the people to run it. That means a named owner of revenue and an executive who sells. It means coverage of the consultants, PMCs and main contractors who decide private work: 8 of Qottuf's 12 verified projects were for private or semi-private clients. It needs one pipeline for contracting work, bid discipline and zero-defect compliance; same-day elevator quotes and 48-hour site surveys; a licensed after-sales offer that turns every installed lift into years of maintenance revenue; and a loop that learns from every outcome. AI agents are the staff that let a small team operate like a large one: they find, filter, prepare, check, remind and learn. Humans decide, price, call, visit, negotiate and send.
 
 ---
