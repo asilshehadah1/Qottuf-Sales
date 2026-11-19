@@ -7,7 +7,7 @@
 import type { BrandRules } from "./brand.ts";
 import { allowedNumberSpans, mentionedProjects } from "./brand.ts";
 import type { Finding } from "./findings.ts";
-import { COMMITMENT_WORDS, findNumericMentions, type NumericMention, type Unit } from "./numbers.ts";
+import { COMMITMENT_WORDS, findNumericMentions, PROMISABLE_KINDS, type NumericMention, type Unit } from "./numbers.ts";
 import { pyRegex } from "./regex.ts";
 import { sentenceAt, splitSentences } from "./text.ts";
 
@@ -34,6 +34,7 @@ export interface VerifiedClaim {
   raw: string;
   value: number | null;
   unit: Unit | null;
+  kind: NumericMention["kind"];
   sourceId: string;
   label: string;
   start: number;
@@ -102,8 +103,7 @@ export function checkClaims(text: string, options: ClaimsOptions): { findings: F
   for (const m of mentions) {
     const sent = sentenceAt(sentences, m.start);
     const sentence = sent?.text ?? text.slice(Math.max(0, m.start - 80), m.end + 80);
-    const commitment = COMMITMENT_WORDS.test(sentence);
-    COMMITMENT_WORDS.lastIndex = 0;
+    const commitment = m.kind === "availability" || (PROMISABLE_KINDS.has(m.kind) && COMMITMENT_WORDS.test(sentence));
 
     if (m.ambiguous) {
       fail("claims.ambiguous_number", m, `'${m.raw}' can be read two ways (${m.ambiguous}). Write it unambiguously, e.g. 16,000.`);
@@ -165,14 +165,16 @@ export function checkClaims(text: string, options: ClaimsOptions): { findings: F
         start: m.start, end: m.end,
       });
     }
-    verified.push({ raw: m.raw, value: m.value, unit: m.unit, sourceId: match.sourceId, label: match.label, start: m.start, end: m.end });
+    verified.push({ raw: m.raw, value: m.value, unit: m.unit, kind: m.kind, sourceId: match.sourceId, label: match.label, start: m.start, end: m.end });
   }
 
   if (options.declared) {
-    const found = [...verified.map((v) => ({ value: v.value, unit: v.unit, start: v.start, end: v.end, raw: v.raw }))];
+    // The declared list covers figures; dates are checked against dated records above.
+    const isFigure = (kind: NumericMention["kind"]) => kind !== "date" && kind !== "year";
+    const found = verified.filter((v) => isFigure(v.kind)).map((v) => ({ value: v.value, unit: v.unit, start: v.start, end: v.end, raw: v.raw }));
     for (const f of findings) {
       const m = mentions.find((x) => x.start === f.start);
-      if (m && m.value !== null) found.push({ value: m.value, unit: m.unit, start: m.start, end: m.end, raw: m.raw });
+      if (m && m.value !== null && isFigure(m.kind)) found.push({ value: m.value, unit: m.unit, start: m.start, end: m.end, raw: m.raw });
     }
     for (const x of found) {
       const declared = options.declared.some((d) => d.value === x.value && unitsCompatible(d.unit as Unit | null, x.unit));

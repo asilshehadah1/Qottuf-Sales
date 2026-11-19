@@ -482,6 +482,12 @@ export function findNumericMentions(text: string): NumericMention[] {
   return out.sort((a, b) => a.start - b.start);
 }
 
-/** The commitment vocabulary (spec §7.2 SG-02): a duration or count near these words is a promise, not a fact. */
+/**
+ * The commitment vocabulary (spec §7.2 SG-02): a duration, availability, price or percentage near these words is
+ * a promise, not a fact. Past tenses ("delivered", "completed", «سلّمنا») describe the record, so they are not here.
+ */
 export const COMMITMENT_WORDS =
-  /\b(?:deliver(?:y|ed|s)?|hand\s?over|complet(?:e|ion)|within|turnaround|respon(?:se|d)|guarantee[ds]?|warrant(?:y|ies)|commit(?:ment)?|lead\s?time|install(?:ation)?\s+in|on\s?site\s+in|available)\b|تسليم|نسلم|خلال|ضمان|نضمن|نلتزم|التزام|الرد|تركيب|تنفيذ|إنجاز|انجاز|متاح/iu;
+  /\b(?:deliver(?:y|s)?|hand\s?over|complete|completion\s+(?:in|within)|within|turnaround|respon(?:se|d)|guarantee[ds]?|warrant(?:y|ies)|commit(?:ment)?|lead\s?time|install(?:ation)?\s+in|on\s?site\s+in|available|will)\b|التسليم\s+خلال|نسلم|خلال|ضمان|نضمن|نلتزم|التزام|الرد|سيتم|متاح/iu;
+
+/** Kinds of quantity that can be promised (a floor count can't be). */
+export const PROMISABLE_KINDS = new Set(["duration", "availability", "money", "percent"]);

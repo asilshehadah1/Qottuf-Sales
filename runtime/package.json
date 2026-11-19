@@ -10,8 +10,7 @@
   "scripts": {
     "typecheck": "tsc -p tsconfig.json",
     "test": "vitest run",
-    "demo": "tsx src/cli/demo.ts",
-    "queue": "tsx src/cli/queue.ts"
+    "demo": "tsx src/cli/demo.ts"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "1.10.0",
