@@ -31,6 +31,9 @@ export const UnitInput = z.object({
   owner_consent_at: isoDate.optional(),
   installed_from_opportunity: z.string().optional(),
   modernisation_candidate: z.boolean().default(false),
+  /** Known only from a project record (its existence, not its details): listed as "to confirm", never as gaps. */
+  unverified: z.boolean().default(false),
+  project_ref: z.string().regex(/^PRJ-\d+$/).optional(),
 });
 export type UnitInput = z.input<typeof UnitInput>;
 
@@ -53,6 +56,8 @@ function rowToUnit(r: Record<string, unknown>): Unit {
     maintenance_offer: r.maintenance_offer as Unit["maintenance_offer"],
     installed_from_opportunity: (r.installed_from_opportunity as string | null) ?? null,
     modernisation_candidate: Boolean(r.modernisation_candidate),
+    unverified: Boolean(r.unverified),
+    project_ref: (r.project_ref as string | null) ?? null,
   };
 }
 
@@ -89,11 +94,11 @@ export async function registerUnit(db: Db, rules: BusinessRules, input: UnitInpu
       await q.query<{ id: string }>(
         `INSERT INTO installed_units (site, owner_account_id, model, manufacturer, origin_document, handed_over_at, warranty_ends_at,
                                       next_inspection_due, next_registration_due, crm_quote_id, source, owner_consent_at,
-                                      installed_from_opportunity, modernisation_candidate)
-         VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14) RETURNING id`,
+                                      installed_from_opportunity, modernisation_candidate, unverified, project_ref)
+         VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16) RETURNING id`,
         [u.site, u.owner_account_id ?? null, u.model ?? null, u.manufacturer ?? null, u.origin_document ?? null, u.handed_over_at ?? null,
           u.warranty_ends_at ?? null, u.next_inspection_due ?? null, u.next_registration_due ?? null, u.crm_quote_id ?? null, u.source,
-          u.owner_consent_at ?? null, u.installed_from_opportunity ?? null, u.modernisation_candidate],
+          u.owner_consent_at ?? null, u.installed_from_opportunity ?? null, u.modernisation_candidate, u.unverified, u.project_ref ?? null],
       )
     ).rows[0]!.id;
     await unitEvent(q, id, actor, "registered", { source: u.source });
@@ -137,6 +142,25 @@ export async function recordRegistration(db: Db, rules: BusinessRules, unitId: s
   await update(db, rules, unitId, actor, "registration", "next_registration_due = $2", [addYears(doneOn, 1)], { done_on: doneOn });
 }
 
+export const UnitConfirmation = z.object({
+  handed_over_at: isoDate.nullable().optional(),
+  warranty_ends_at: isoDate.nullable().optional(),
+  next_inspection_due: isoDate.nullable().optional(),
+  next_registration_due: isoDate.nullable().optional(),
+  manufacturer: z.string().nullable().optional(),
+  model: z.string().nullable().optional(),
+  origin_document: z.string().nullable().optional(),
+});
+
+/** Confirm a lift known only from a project record: set what the handover file shows, and stop treating it as unverified. */
+export async function confirmUnit(db: Db, rules: BusinessRules, unitId: string, input: z.input<typeof UnitConfirmation>, actor: string): Promise<void> {
+  const c = UnitConfirmation.parse(input);
+  const cols = (["handed_over_at", "warranty_ends_at", "next_inspection_due", "next_registration_due", "manufacturer", "model", "origin_document"] as const)
+    .filter((k) => c[k] !== undefined);
+  const set = ["unverified = false", ...cols.map((k, i) => `${k} = $${i + 2}`)].join(", ");
+  await update(db, rules, unitId, actor, "confirmed", set, cols.map((k) => c[k] ?? null), Object.fromEntries(cols.map((k) => [k, c[k] ?? null])));
+}
+
 export interface RegistryGap {
   kind: "won_without_unit" | "no_maintenance_offer" | "no_origin_document" | "no_owner_consent" | "no_inspection_date";
   ref: string;
@@ -152,7 +176,7 @@ export async function registryGaps(q: Queryable): Promise<RegistryGap[]> {
      ORDER BY o.id`,
   )).rows;
   for (const o of unregistered) out.push({ kind: "won_without_unit", ref: o.id, detail: `${o.title}: sold but not in the registry, so nobody will offer maintenance or book its inspection.` });
-  for (const u of (await listUnits(q)).filter((x) => x.status === "active")) {
+  for (const u of (await listUnits(q)).filter((x) => x.status === "active" && !x.unverified)) {
     if (u.source === "installed" && u.maintenance_offer === "not_offered") {
       out.push({ kind: "no_maintenance_offer", ref: u.id, detail: `${u.site}: maintenance not yet offered (Phase 1 target: offered on every new sale).` });
     }

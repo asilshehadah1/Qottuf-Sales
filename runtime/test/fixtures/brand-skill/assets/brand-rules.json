@@ -1,0 +1,38 @@
+{
+ "_about": "Test fixture in the format of the qottuf-brand skill's brand-rules.json. Projects and figures are fictional; the real rulebook is loaded from the skill at run time and never copied into this repo.",
+ "naming": {
+  "first_mention": "Qottuf Aljazeera",
+  "subsequent": "Qottuf",
+  "legal_en": "Qottuf Aljazeera Company L.L.C.",
+  "arabic": "قطوف الجزيرة",
+  "forbidden_variants": ["Qottuf Al Jazeera", "Qottuf Jazeera"],
+  "misspellings_regex": "\\b(Quttof|Qutoof)\\w*"
+ },
+ "banned_phrases_en": ["the best", "world-class", "guaranteed"],
+ "banned_phrases_ar": ["الأفضل", "رقم واحد"],
+ "banned_punctuation": ["!"],
+ "first_person_singular_en": ["\\bI\\b", "(?i:\\bmy\\b)"],
+ "first_person_singular_ar": ["\\bأنا\\b"],
+ "number_allow_regex": "(PRJ|CAP|EV)-\\d+|\\bPhase \\d\\b|\\bVision 2030\\b|\\+?966[\\d\\s]*",
+ "red_flag_patterns": [
+  {"id": "years", "category": "claims", "severity": "fail", "lang": "en", "regex": "\\b\\d+\\s*\\+?\\s*(years|yrs)\\b|\\byears of (experience|expertise)\\b", "explain": "No years-of-experience claims."},
+  {"id": "ministry-ar", "category": "sign_off", "severity": "fail", "lang": "ar", "regex": "وزارة (?!البلديات والإسكان)\\S+", "explain": "Naming a ministry needs sign-off."},
+  {"id": "ar-raeda", "category": "ranking", "severity": "fail", "lang": "ar", "regex": "رائدة|الرائد[ةه]?(?!\\w)", "explain": "Ranking claim."},
+  {"id": "seamless", "category": "unbacked_superlative", "severity": "demand_proof", "lang": "en", "regex": "\\bseamless(ly)?\\b", "explain": "Needs a proof point in the same sentence."},
+  {"id": "emoji-bullet", "category": "formulaic_structure", "severity": "fail", "lang": "any", "regex": "^\\s*[\\u2705\\U0001F680]", "explain": "Emoji used as a bullet."}
+ ],
+ "thresholds": {"em_dash_per_100_words": 2, "signal_count_for_finding": 3, "parallel_bullet_min": 3},
+ "verified_figures": [
+  {"value": "2014", "label": "Founded 2014", "id": "CAP-003"},
+  {"value": "120", "context": "bed", "label": "120-bed hospital fit-out, Example Hospital", "id": "PRJ-901"},
+  {"value": "18000", "context": "m²|m2|sqm|م", "label": "18,000 m² flooring, Example Hospital", "id": "PRJ-901"},
+  {"value": "6", "context": "elevator|lift|مصاعد|مصعد", "label": "6 elevators, Example Campus", "id": "PRJ-902"},
+  {"value": "13", "context": "floor|stor|طابق|طوابق", "label": "13 floors, Example Tower", "id": "PRJ-903"}
+ ],
+ "glossary": [],
+ "project_mentions": {
+  "PRJ-901": "Example Hospital|مستشفى المثال",
+  "PRJ-902": "Example Campus|حرم المثال",
+  "PRJ-903": "Example Tower|برج المثال"
+ }
+}

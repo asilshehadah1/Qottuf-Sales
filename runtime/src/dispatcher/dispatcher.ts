@@ -15,6 +15,7 @@ import { bilingualPipeline } from "../pipelines/bilingual.ts";
 import { caseStudyPipeline } from "../pipelines/caseStudy.ts";
 import type { Pipeline, PipelineContext, RunStep } from "../pipelines/context.ts";
 import { mailDomainPipeline, renewalsPipeline, siteCheckPipeline } from "../pipelines/footprint.ts";
+import { elevatorAdPipeline, linkedinPipeline, webPagePipeline } from "../pipelines/marketing.ts";
 import { meetingBriefPipeline, meetingDebriefPipeline } from "../pipelines/meetings.ts";
 import { prequalPackPipeline } from "../pipelines/prequalPack.ts";
 import { buildBoardPack } from "../reporting/boardPack.ts";
@@ -43,6 +44,9 @@ export const PIPELINES: Record<string, Pipeline> = {
   site_check: siteCheckPipeline,
   mail_domain_check: mailDomainPipeline,
   maintenance_renewals: renewalsPipeline,
+  linkedin_post: linkedinPipeline,
+  elevator_ad: elevatorAdPipeline,
+  web_page: webPagePipeline,
 };
 
 /** Token budgets per work order, sized to the artifact (spec §6 S1-03). Code-only pipelines use none. */
@@ -56,6 +60,9 @@ export const DEFAULT_BUDGETS: Record<string, number> = {
   site_check: 1,
   mail_domain_check: 1,
   maintenance_renewals: 1,
+  linkedin_post: 80_000,
+  elevator_ad: 80_000,
+  web_page: 200_000,
 };
 
 export interface DispatcherDeps {

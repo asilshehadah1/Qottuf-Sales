@@ -72,6 +72,14 @@ export function visibleText(html: string): string {
     .join("\n");
 }
 
+/** The page's title and meta description, as search results and browser tabs show them. */
+export function pageHead(html: string): { title: string | null; description: string | null } {
+  const title = decodeEntities(/<title\b[^>]*>([^<]*)<\/title>/i.exec(html)?.[1] ?? "").trim();
+  const meta = tags(html, "meta").find((m) => attr(m, "name")?.toLowerCase() === "description");
+  const description = meta ? (attr(meta, "content") ?? "").trim() : "";
+  return { title: title || null, description: description || null };
+}
+
 function attr(tag: string, name: string): string | null {
   const m = new RegExp(`\\b${name}\\s*=\\s*("([^"]*)"|'([^']*)'|([^\\s>]+))`, "i").exec(tag);
   return m ? decodeEntities(m[2] ?? m[3] ?? m[4] ?? "") : null;

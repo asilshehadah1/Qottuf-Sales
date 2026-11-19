@@ -29,6 +29,9 @@ export interface Unit {
   maintenance_offer: "not_offered" | "offered" | "accepted" | "declined";
   installed_from_opportunity: string | null;
   modernisation_candidate: boolean;
+  /** Entered from a project record: only the lift's existence is known until someone confirms its details. */
+  unverified?: boolean;
+  project_ref?: string | null;
 }
 
 export function addYears(date: string, years: number): string {
@@ -56,7 +59,8 @@ export interface DueItem {
 /** Everything due within `horizonDays` of today, or already overdue, for active units. */
 export function dueItems(units: Unit[], today: string, horizonDays: number): DueItem[] {
   const out: DueItem[] = [];
-  for (const u of units.filter((x) => x.status === "active")) {
+  // A lift known only from a project record has no dates yet; nothing about it is due until someone confirms them.
+  for (const u of units.filter((x) => x.status === "active" && !x.unverified)) {
     const push = (kind: DueItem["kind"], due: string | null) => {
       if (!due) return;
       const days = daysBetween(today, due);

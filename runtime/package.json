@@ -12,7 +12,8 @@
     "test": "vitest run",
     "demo": "tsx src/cli/demo.ts",
     "check": "tsx src/cli/check.ts",
-    "build:console": "node scripts/build-console.mjs"
+    "build:console": "node scripts/build-console.mjs",
+    "board": "tsx src/board/main.ts"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "1.10.0",

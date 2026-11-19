@@ -9,9 +9,63 @@ The agentic workflow from `qottuf-business-development-department-v1.md`, built.
 ```bash
 cd runtime
 npm install
-npm test        # 123 tests on a real Postgres engine running in-process (PGlite)
+npm test        # 138 tests on a real Postgres engine running in-process (PGlite)
 npm run demo    # the whole workflow on fictional data, no setup, no network
+npm run board   # the board on this computer: http://localhost:4300
 ```
+
+## The board, on your computer
+
+`npm run board`, then open **http://localhost:4300**. It is the department's one screen:
+- all 38 agents of the merged roster, from the sales and the marketing designs;
+- the approvals queue;
+- the Ledger, the website and the CRM.
+
+It is one process on your computer:
+- the Ledger, in an embedded Postgres in `runtime/.data/board` (outside git), or `DATABASE_URL`;
+- the Dispatcher's worker, which runs the agents;
+- the board's page.
+
+**Setup.** Copy `.env.example` to `.env` (git ignores it) and fill in what you use:
+
+| Setting | What it does |
+|---|---|
+| `QOTTUF_MODEL_CALLS=enabled` and `ANTHROPIC_API_KEY` | Turn the writers on. They run on your Anthropic API account and are billed per use, not to your Claude plan. Each run has a token budget, and the board shows the tokens each run used. Without a key, the code agents still run: the website and mail checks, the board pack and the renewals |
+| `QOTTUF_BRAND_DIR` | The qottuf-brand skill's folder, if the board doesn't find it in `~/.claude/skills`. The rulebook and the fact base are read from it at start and never copied into git |
+| `WEBSITE_PAGES`, `MAIL_DOMAIN` | The pages the site check reads (default: the home page and both configurators on qottuf.com) and the quote inbox's domain |
+
+**What's on it.**
+
+| Page | What it shows |
+|---|---|
+| Board | What needs you, this week's numbers, the department at a glance, recent runs, alerts |
+| Agents | The 38 agents by group (Spine, Win: Projects, Win: Elevators, Proof & Demand), filterable by sales or marketing. A live agent opens a panel to run it and watch each step |
+| Approvals | Each draft in both languages, side by side, with its checks |
+| Pipeline | The Pipeline Engine: accounts, opportunities, screening, the bid decision (S-G1), history |
+| Elevators | The CRM's pipeline as stage columns, with the 24-hour first-contact and 48-hour technical promises checked against the timestamps; each card opens the quotation in the CRM |
+| Website | The live site check with "rewrite this page" on each failing page, the mail domain, the master company record and the listings |
+| Proof | The proof test, the evidence store, and a one-click import of the brand fact base: the 12 projects, the lifts on record and the proposed company record |
+| Lifts | The installed base: confirm the PRJ-005 lifts, owner agreements, contracts, inspections, renewals |
+| Check text, Connections | Any copy through the gates, and what the board is connected to |
+
+**The marketing agents.** Three marketing writers were pulled forward from phase 2 at Asil's request. They share one workflow (`src/workflows/content.ts`), with the same gates, an independent claim extraction and one revision round:
+- **#30** writes LinkedIn posts, in the company voice or Asil's;
+- **#34** writes elevator posts and reel scripts, with Saudi conversational Arabic allowed and real footage only;
+- **#29** rewrites a live page that failed the site check, in both languages, with its title, description and the form's consent sentence.
+
+The retired marketing runtime is not called: its model agents are rewritten here, as the spec says.
+
+**The CRM connection.** The CRM has no read-only keys, so the board signs in as a person, from the Elevators page. Use a coordinator account: it sees the whole pipeline and can't change a quotation.
+- **The session:** kept in memory only, and synced every 10 minutes. The password is never stored. `CRM_EMAIL` and `CRM_PASSWORD` in `.env` are optional, for an account without two-factor sign-in.
+- **What's kept:** each quotation is copied through an allowlist, without the customer's name, phone, email, company, notes, configurator choices or request metadata.
+- **Writes:** the board never writes to the CRM.
+
+**The website connection.**
+- **Live checks:** the site check and the mail check run from your computer, against the live site and the live DNS.
+- **Leads:** enquiries from the website's configurators arrive through the CRM.
+- **Rewrites:** the Web Page Writer's rewrites land in Approvals; nothing on the website changes from the board.
+
+**Security.** The board listens on 127.0.0.1 only and answers only requests whose Host header names this machine, which blocks DNS rebinding. Every change must be JSON from the board's own page, so another website open in the same browser can't approve a draft or start a paid run. Pages carry a strict content security policy and can't be framed.
 
 ## The console: live, on Asil's Claude plan
 
@@ -99,6 +153,9 @@ The mail check:
 | 20 | Prequalification and Evidence Manager | Code part built: pack check, expiry at 60/30/7 days, referee consents to request | `src/pipelines/prequalPack.ts` |
 | 27 | Installed Base and Maintenance Registry | Built: lifts with owner consent, maintenance offers and contracts, inspection and registration dates; renewals become pipeline opportunities; gaps flagged | `src/installedBase/` |
 | 28 | Case-Study and Reference Writer | Built | `src/agents/caseStudyWriter.ts` |
+| 29 | Web Page Writer | Built (pulled forward from phase 2): rewrites a live page that failed the site check | `src/agents/marketing.ts`, `src/workflows/marketing.ts` |
+| 30 | Executive Voice and company LinkedIn | Built (pulled forward from phase 2) | `src/agents/marketing.ts` |
+| 34 | Elevator Ad and Content Drafter | Built (pulled forward from phase 2): posts and reel scripts, real footage only | `src/agents/marketing.ts` |
 | 31 | Entity and Listings Record | Built: master company record approved by Asil and bound to the rulebook; every listing compared field by field | `src/entity/` |
 | 32 | Site Checker | Built: ported from marketing, with its bugs fixed | `src/site/` |
 | 38 | DNS and Deliverability Check | Built: ported from marketing, with its bugs fixed | `src/deliverability/` |
@@ -129,7 +186,18 @@ Elevators: the engine already runs the CRM's pipeline stages and SLAs, and the r
 
 ## What has run, and what hasn't
 
-- All 123 tests pass and the type check is clean.
+- All 138 tests pass and the type check is clean.
+- **The board, checked in a browser:** 18 checks, all passing, on 19 November. The board ran here with:
+  - the real brand skill;
+  - the live site's pages saved that morning;
+  - a stand-in CRM holding fictional quotations;
+  - a scripted stand-in for Claude.
+
+  The checks covered the import, the site and mail checks, a case study and a LinkedIn post run to completion, the CRM stage columns, a tender screened, every page at phone width, dark mode, and no page errors.
+- **Not run from the board yet:**
+  - a real Claude call, which needs an API key;
+  - a sign-in to the real CRM, which needs an account;
+  - a fetch of the live site. This container has no direct internet, so the site check read the saved pages; on your computer it reads the live ones.
 - **Real checks, 19 November 2026:**
   - **The site checker on the live website branch** (`content-update-aug2026`, 5 pages): 35 failures, and 1 of the 4 G0 bar items met (working contacts).
   - **The mail check on qottuf.com: unprotected.** There is no DMARC record and the SPF record ends in `?all`; MX and a DKIM key are present.
@@ -151,6 +219,8 @@ Elevators: the engine already runs the CRM's pipeline stages and SLAs, and the r
    - The trade-off: the console's access rules are claude.ai's database rules, not Postgres row-level security, and it keeps no hash-chained audit log.
    - So only public and tender evidence go into it.
    - The server runtime remains the target for confidential work.
+4. **The board signs in to the CRM as a person.** The CRM has no read-only service key, so the board uses a coordinator's session, kept in memory. Adding a scoped, read-only key to the CRM would let the board sync without a person's session; that's a change to the CRM's repository, for Asil to approve.
+5. **Three phase 2 marketing agents (#29, #30, #34) are built now,** at Asil's request; drafts only.
 
 ## Data
 
@@ -162,10 +232,10 @@ Real evidence goes into the database (or the console's store on claude.ai), and 
 
 ## Needed from Asil
 
-1. **Hosting and data residency** (by 17 December). This turns model calls on.
+1. **An Anthropic API key, and the decision to turn the writers on.** The board runs on your computer, so its data stays there; model calls go to Anthropic's API and are billed per use. Put the key in `runtime/.env`; data residency for any later hosting is still decision #7 (by 17 December).
 2. **Sign off `config/business-rules.json`.** It says `PENDING: Asil`.
 3. **The proof documents:** contract value, dates and completion certificate for at least three projects.
-4. **The master company record:** CR, VAT, phone, email, website, address. It's proposed in the console (Footprint), with four questions to settle before Asil approves it:
+4. **The master company record:** CR, VAT, phone, email, website, address. It's proposed on the board's Website page (and in the console's Footprint), with questions to settle before Asil approves it:
    - the Arabic legal name;
    - whether the landline is still answered (the elevator page's code says it was retired, yet the home page still dials +966 11 217 7750, and the rulebook lists it);
    - which domain is the company's;
@@ -173,4 +243,4 @@ Real evidence goes into the database (or the console's store on claude.ai), and 
 5. **Two DNS changes on qottuf.com,** for whoever manages the domain:
    - add a DMARC record, starting at `p=none` with a report address, then tightening;
    - change the SPF ending from `?all` to `~all`.
-6. **CRM access** for the elevator poller (next phase).
+6. **A CRM coordinator account for the board** (a coordinator sees the whole pipeline and can't change a quotation). Sign in from the board's Elevators page.
