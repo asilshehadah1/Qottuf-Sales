@@ -9,9 +9,62 @@ The agentic workflow from `qottuf-business-development-department-v1.md`, built.
 ```bash
 cd runtime
 npm install
-npm test        # 115 tests on a real Postgres engine running in-process (PGlite)
+npm test        # 123 tests on a real Postgres engine running in-process (PGlite)
 npm run demo    # the whole workflow on fictional data, no setup, no network
 ```
+
+## The console: live, on Asil's Claude plan
+
+**https://claude.ai/artifact/2So2XzTx7RT2hHX32fwVzD**. It's private until Asil shares it from the page's Share menu; give the team **Contributor** access.
+
+**How it runs.**
+- It's a claude.ai page. The agents run in the browser, on the viewer's own Claude plan, through the page's `sample` capability: no API key, no separate billing.
+- The first agent run asks the viewer to allow Claude.
+- It's the same code as the server. The workflows, gates and engine rules are compiled into `console/qottuf-console.js` (`npm run build:console`), so a draft is checked the same way in both places.
+
+**The views.**
+
+| View | What it does |
+|---|---|
+| Board | Decisions first |
+| Pipeline | Accounts, opportunities, screening against the knock-outs, the bid decision (S-G1) |
+| Agents | Meeting brief, debrief, case study, bilingual editor |
+| Approvals | Drafts waiting for approval. There is no send button |
+| Proof | The 17 December proof test, and evidence filing |
+| Lifts | The installed base and renewals |
+| Footprint | The master company record, listings, and the website and mail checks |
+| Check text | Any copy, against the same gates |
+
+**Who can do what.** These are the page's database rules, enforced by claude.ai:
+
+| Who | Can |
+|---|---|
+| Contributors | Read the records; create accounts and opportunities; run agents; file evidence as drafts; keep the lift registry |
+| Asil only (the artifact's owner) | Approve drafts; decide bids, which writes an owner-only record the pipeline shows as "recorded by Asil"; approve or withdraw evidence (S-G5); approve the master record |
+| Editors | Also manage contacts and the stored checks |
+| Viewers and Commenters | See no records |
+
+**What's in it.** It was seeded on 19 November 2026 with real records only. The team adds its own pipeline.
+- The 12 projects from the brand fact base, as public evidence. A client may be named only where the company already names it publicly.
+- The six PRJ-005 lifts. Each is marked "to confirm", because only their existence is on record.
+- A proposed master company record with four open questions.
+- The 19 November website and mail checks.
+
+**Personal data.** Phone numbers, emails, ID numbers, IBANs and titled names (Eng., Dr., المهندس) are removed before Claude sees anything. A bare name isn't, so notes should name roles, not people. Confidential and internal evidence stay out of the console: it files tender and public tiers only.
+
+**Limits.**
+- The page can't fetch other sites, so the live website and mail checks don't re-run from it. Paste a page's HTML into Footprint, or run `npm run check`.
+- The console's records live in the artifact's database on claude.ai, not in Postgres. They have the page's access rules but not row-level security by tier or the hash-chained audit log.
+
+**Update it.**
+1. Run `npm run build:console`.
+2. Republish `console/index.html` with three files beside it: `qottuf-console.js`, `config/business-rules.json`, and the brand skill's `assets/brand-rules.json`. The rulebook is never copied into git.
+
+**Checked.**
+- A browser pass of 56 checks against a stand-in runtime, all passing. It covered every view, a bid decision and its owner record, a case-study run through to approval, and stopping a run.
+- It also covered a rate-limit message, PII redaction, contributor and viewer access, phone width, and the dark theme.
+- After publishing, the seed was read back at Contributor level.
+- No real Claude call has been made from the console yet: that needs Asil's consent in the browser.
 
 ## Checks the team can run today
 
@@ -76,11 +129,14 @@ Elevators: the engine already runs the CRM's pipeline stages and SLAs, and the r
 
 ## What has run, and what hasn't
 
-- All 115 tests pass and the type check is clean.
+- All 123 tests pass and the type check is clean.
 - **Real checks, 19 November 2026:**
   - **The site checker on the live website branch** (`content-update-aug2026`, 5 pages): 35 failures, and 1 of the 4 G0 bar items met (working contacts).
   - **The mail check on qottuf.com: unprotected.** There is no DMARC record and the SPF record ends in `?all`; MX and a DKIM key are present.
-- **No real call to Claude has been made.** The model client was tested against the SDK's real request builder with a fake network, and the demo uses scripted outputs. Model calls stay off until Asil decides hosting and data residency (decision #7, due 17 December).
+- **No real call to Claude has been made.**
+  - The server's model client was tested against the SDK's real request builder with a fake network, and the demo uses scripted outputs.
+  - Server model calls stay off until Asil decides hosting and data residency (decision #7, due 17 December).
+  - The console is the exception: it calls Claude on Asil's own plan once Asil allows it in the browser.
 - **No golden sets yet** (spec §13.4), so the agents can't be measured and no agent should go live.
 - **Known limits:**
   - The PII guard misses a bare name with no title that isn't in the contact registry.
@@ -91,21 +147,29 @@ Elevators: the engine already runs the CRM's pipeline stages and SLAs, and the r
 
 1. **The Dispatcher queue lives in Postgres, not Redis/BullMQ.** It gives the same guarantees with one service fewer to run and secure.
 2. **No HTTP API yet,** so nothing is exposed. The authenticated API (sessions with MFA for people, scoped keys for services) and Docker Compose come before any deployment.
+3. **The console runs agents in the browser, on Asil's Claude plan, with its data on claude.ai.** This makes the agents usable now, before the hosting decision.
+   - The trade-off: the console's access rules are claude.ai's database rules, not Postgres row-level security, and it keeps no hash-chained audit log.
+   - So only public and tender evidence go into it.
+   - The server runtime remains the target for confidential work.
 
 ## Data
 
 No client data is in this repo:
 - test and demo data is fictional;
-- the brand rulebook is read from the brand skill at run time, never copied.
+- the brand rulebook is read from the brand skill at run time, never copied. The console's copy is published with the artifact on claude.ai, not kept in git.
 
-Real evidence goes into the database, and the database never goes into git.
+Real evidence goes into the database (or the console's store on claude.ai), and neither goes into git.
 
 ## Needed from Asil
 
 1. **Hosting and data residency** (by 17 December). This turns model calls on.
 2. **Sign off `config/business-rules.json`.** It says `PENDING: Asil`.
 3. **The proof documents:** contract value, dates and completion certificate for at least three projects.
-4. **The master company record:** CR, VAT, phone, email, website, address. One open question: the elevator page's code says the office landline was retired, yet the home page still dials +966 11 217 7750, and the rulebook lists it.
+4. **The master company record:** CR, VAT, phone, email, website, address. It's proposed in the console (Footprint), with four questions to settle before Asil approves it:
+   - the Arabic legal name;
+   - whether the landline is still answered (the elevator page's code says it was retired, yet the home page still dials +966 11 217 7750, and the rulebook lists it);
+   - which domain is the company's;
+   - the VAT number.
 5. **Two DNS changes on qottuf.com,** for whoever manages the domain:
    - add a DMARC record, starting at `p=none` with a report address, then tightening;
    - change the SPF ending from `?all` to `~all`.

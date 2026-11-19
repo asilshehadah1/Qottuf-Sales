@@ -1,0 +1,1359 @@
+<title>Qottuf BD Console</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600&family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600;9..40,700&family=Noto+Naskh+Arabic:wght@400;600&display=swap">
+<style>
+/* Layout: a navy rail of sections beside a light work surface; every view leads with what needs a decision. */
+:root {
+  --ground: #F5F6F8; --surface: #FFFFFF; --surface-2: #ECEEF3; --ink: #0D2B5C; --ink-2: #3F4560; --muted: #5C6278; --line: #D8DCE5;
+  --rail: #0D2B5C; --rail-ink: #FFFFFF; --rail-muted: #BDC3D0; --rail-hover: #1A3A70;
+  --accent: #7EB5A8; --accent-ink: #3A7C6E;
+  --ok: #2F6E61; --ok-bg: #E2F0EC; --warn: #8A5A00; --warn-bg: #FFF2CF; --bad: #A61B12; --bad-bg: #FBE7E5; --info-bg: #E6ECF6;
+  --font-display: "Cormorant Garamond", Georgia, serif;
+  --font-body: "DM Sans", "Helvetica Neue", Arial, sans-serif;
+  --font-ar: "Noto Naskh Arabic", "DM Sans", serif;
+  --font-mono: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  --r-sm: 4px; --r-md: 8px;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --ground: #0A2049; --surface: #0D2B5C; --surface-2: #14376F; --ink: #FFFFFF; --ink-2: #D8DCE5; --muted: #BDC3D0; --line: #26487E;
+    --rail: #071837; --rail-ink: #FFFFFF; --rail-muted: #9BA3B5; --rail-hover: #14376F;
+    --accent: #7EB5A8; --accent-ink: #A8CFC6;
+    --ok: #A8CFC6; --ok-bg: #173F3A; --warn: #F2C46D; --warn-bg: #3F3210; --bad: #F4A3A0; --bad-bg: #45201F; --info-bg: #183A70;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --ground: #0A2049; --surface: #0D2B5C; --surface-2: #14376F; --ink: #FFFFFF; --ink-2: #D8DCE5; --muted: #BDC3D0; --line: #26487E;
+  --rail: #071837; --rail-ink: #FFFFFF; --rail-muted: #9BA3B5; --rail-hover: #14376F;
+  --accent: #7EB5A8; --accent-ink: #A8CFC6;
+  --ok: #A8CFC6; --ok-bg: #173F3A; --warn: #F2C46D; --warn-bg: #3F3210; --bad: #F4A3A0; --bad-bg: #45201F; --info-bg: #183A70;
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+body { background: var(--ground); color: var(--ink); font: 400 15px/1.55 var(--font-body); }
+body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-area-inset-top, 0px); z-index: 10; background: var(--rail); }
+button, input, select, textarea { font: inherit; color: inherit; }
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+@media (prefers-reduced-motion: reduce) { * { transition: none !important; animation: none !important; } }
+
+.app { display: grid; grid-template-columns: 236px minmax(0, 1fr); min-height: 100vh; }
+.rail { position: sticky; top: 0; align-self: start; height: 100vh; background: var(--rail); color: var(--rail-ink);
+  padding-block: 22px 18px; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: 16px;
+  display: flex; flex-direction: column; gap: 22px; overflow-y: auto; }
+.brand { display: grid; gap: 2px; }
+.brand .who { font: 600 22px/1.1 var(--font-display); letter-spacing: .01em; }
+.brand .what { font: 600 10px/1.4 var(--font-body); letter-spacing: .14em; text-transform: uppercase; color: var(--rail-muted); }
+.nav { display: grid; gap: 2px; }
+.nav button { all: unset; cursor: pointer; display: flex; align-items: center; gap: 10px; padding: 8px 10px; border-radius: var(--r-sm); color: var(--rail-muted); font-weight: 500; }
+.nav button:hover { background: var(--rail-hover); color: var(--rail-ink); }
+.nav button[aria-current="page"] { color: var(--rail-ink); background: var(--rail-hover); }
+.nav button[aria-current="page"]::before { background: var(--accent); }
+.nav button::before { content: ""; width: 6px; height: 6px; border-radius: 50%; background: transparent; flex: none; }
+.nav .count { margin-left: auto; font: 600 11px/1 var(--font-body); background: var(--accent); color: #0D2B5C; border-radius: 999px; padding: 3px 7px; font-variant-numeric: tabular-nums; }
+.rail-foot { margin-top: auto; display: grid; gap: 8px; font-size: 12.5px; color: var(--rail-muted); }
+.rail-foot .row { display: flex; align-items: center; gap: 8px; }
+.dot { width: 8px; height: 8px; border-radius: 50%; flex: none; background: var(--rail-muted); }
+.dot.on { background: var(--accent); }
+.dot.off { background: #E07B73; }
+
+main { min-width: 0; padding-block: 26px 72px; padding-left: max(16px, 28px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
+.wrap { max-width: 1120px; display: grid; gap: 28px; }
+.page-head { display: flex; flex-wrap: wrap; gap: 12px 20px; align-items: end; justify-content: space-between; }
+.page-head h1 { margin: 0; font: 500 32px/1.1 var(--font-display); text-wrap: balance; }
+.page-head p { margin: 4px 0 0; color: var(--muted); max-width: 62ch; }
+.banner { border: 1px solid var(--line); background: var(--info-bg); border-radius: var(--r-md); padding: 10px 14px; font-size: 14px; }
+.banner.bad { background: var(--bad-bg); color: var(--bad); border-color: transparent; }
+.banner.warn { background: var(--warn-bg); color: var(--warn); border-color: transparent; }
+
+section > h2, .h2 { margin: 0 0 10px; font: 700 11px/1.3 var(--font-body); letter-spacing: .14em; text-transform: uppercase; color: var(--muted); }
+h3 { margin: 0; font: 600 16px/1.35 var(--font-body); }
+.panel { background: var(--surface); border: 1px solid var(--line); border-radius: var(--r-md); }
+.panel-pad { padding: 16px 18px; }
+.grid { display: grid; gap: 14px; }
+.cols-2 { grid-template-columns: repeat(auto-fit, minmax(min(100%, 320px), 1fr)); }
+.cols-3 { grid-template-columns: repeat(auto-fit, minmax(min(100%, 240px), 1fr)); }
+.cols-4 { grid-template-columns: repeat(auto-fit, minmax(min(100%, 200px), 1fr)); }
+.stack { display: grid; gap: 10px; align-content: start; }
+/* Grid and flex children default to their content's width; a wide table or a long record would push the page sideways. */
+.wrap > *, .grid > *, .stack > *, form > *, .fields > * { min-width: 0; }
+.row { display: flex; flex-wrap: wrap; gap: 8px 12px; align-items: center; }
+.between { justify-content: space-between; }
+.muted { color: var(--muted); }
+.small { font-size: 13px; }
+.mono { font-family: var(--font-mono); font-size: 12.5px; }
+.num { font-variant-numeric: tabular-nums; }
+.ar { font-family: var(--font-ar); line-height: 1.8; direction: rtl; text-align: right; }
+.empty { color: var(--muted); font-size: 14px; padding: 14px 0; }
+
+.chip { display: inline-flex; align-items: center; gap: 6px; font: 700 10.5px/1 var(--font-body); letter-spacing: .06em; text-transform: uppercase;
+  padding: 5px 8px; border-radius: 999px; background: var(--surface-2); color: var(--ink-2); white-space: nowrap; }
+.chip.ok { background: var(--ok-bg); color: var(--ok); }
+.chip.warn { background: var(--warn-bg); color: var(--warn); }
+.chip.bad { background: var(--bad-bg); color: var(--bad); }
+.chip.accent::before { content: ""; width: 6px; height: 6px; border-radius: 50%; background: var(--accent); }
+
+.btn { cursor: pointer; display: inline-flex; align-items: center; justify-content: center; gap: 8px; font-weight: 600; font-size: 14px;
+  padding: 8px 14px; border-radius: var(--r-sm); border: 1px solid var(--line); background: var(--surface); color: var(--ink); text-decoration: none; }
+.btn:hover { border-color: var(--muted); }
+.btn.primary { background: var(--ink); color: var(--surface); border-color: var(--ink); }
+.btn.danger { color: var(--bad); }
+.btn[disabled] { opacity: .5; cursor: not-allowed; }
+.btn.small { padding: 5px 10px; font-size: 13px; }
+.linkish { all: unset; cursor: pointer; color: var(--accent-ink); font-weight: 600; text-decoration: underline; text-underline-offset: 3px; }
+.seg { display: inline-flex; border: 1px solid var(--line); border-radius: var(--r-sm); overflow: hidden; background: var(--surface); }
+.seg button { all: unset; cursor: pointer; padding: 6px 12px; font-size: 13.5px; font-weight: 600; color: var(--muted); }
+.seg button[aria-pressed="true"] { background: var(--ink); color: var(--surface); }
+
+.table-wrap { overflow-x: auto; }
+table { width: 100%; border-collapse: collapse; font-variant-numeric: tabular-nums; font-size: 14px; }
+th { text-align: left; font: 700 10.5px/1.3 var(--font-body); letter-spacing: .1em; text-transform: uppercase; color: var(--muted); padding: 10px 12px; border-bottom: 1px solid var(--line); white-space: nowrap; }
+td { padding: 11px 12px; border-bottom: 1px solid var(--line); vertical-align: top; }
+tr:last-child td { border-bottom: 0; }
+tr.click { cursor: pointer; }
+tr.click:hover td { background: var(--surface-2); }
+tr.sel td { background: var(--info-bg); }
+
+form { display: grid; gap: 12px; }
+.fields { display: grid; gap: 12px; grid-template-columns: repeat(auto-fit, minmax(min(100%, 220px), 1fr)); }
+label.f { display: block; font-size: 13px; font-weight: 600; color: var(--ink-2); min-width: 0; }
+label.f > input, label.f > select, label.f > textarea { display: block; margin-top: 5px; }
+label.f span.hint { font-weight: 400; color: var(--muted); }
+bdi.ar-run { font-family: var(--font-ar); }
+input[type=text], input[type=number], input[type=date], input[type=datetime-local], select, textarea {
+  width: 100%; min-width: 0; padding: 8px 10px; border: 1px solid var(--line); border-radius: var(--r-sm); background: var(--surface); color: var(--ink); font-size: 14px; }
+textarea { min-height: 96px; resize: vertical; line-height: 1.55; }
+textarea.tall { min-height: 170px; }
+fieldset { border: 1px solid var(--line); border-radius: var(--r-sm); padding: 10px 12px; margin: 0; display: flex; flex-wrap: wrap; gap: 8px 16px; }
+legend { font-size: 13px; font-weight: 600; color: var(--ink-2); padding: 0 4px; }
+.check-inline { display: inline-flex; gap: 6px; align-items: center; font-size: 14px; font-weight: 500; }
+.form-error { color: var(--bad); font-size: 13.5px; }
+details > summary { cursor: pointer; font-weight: 600; font-size: 14px; }
+
+.kv { display: grid; grid-template-columns: max-content minmax(0, 1fr); gap: 6px 16px; font-size: 14px; }
+.kv dt { color: var(--muted); }
+.kv dd { margin: 0; min-width: 0; overflow-wrap: anywhere; }
+
+.decision { display: grid; gap: 10px; border-left: 3px solid var(--accent); }
+.finding { border-left: 3px solid var(--line); padding: 8px 12px; background: var(--surface); border-radius: 0 var(--r-sm) var(--r-sm) 0; display: grid; gap: 3px; font-size: 14px; }
+.finding.fail { border-left-color: var(--bad); }
+.finding.signal { border-left-color: var(--warn); }
+.finding .rule { font-family: var(--font-mono); font-size: 12px; color: var(--muted); }
+.finding q { quotes: "\201C" "\201D"; overflow-wrap: anywhere; }
+
+.meter { display: flex; gap: 6px; }
+.meter i { flex: 1; height: 8px; border-radius: 2px; background: var(--surface-2); }
+.meter i.on { background: var(--accent); }
+.big { font: 600 34px/1 var(--font-body); font-variant-numeric: tabular-nums; }
+
+/* The band ruler: SAR 0 to 150 m, the 20-100 m band shaded, the opportunity's range drawn on it. */
+.ruler { position: relative; height: 26px; margin-top: 4px; }
+.ruler .track { position: absolute; left: 0; right: 0; top: 11px; height: 4px; background: var(--surface-2); border-radius: 2px; }
+.ruler .band { position: absolute; top: 9px; height: 8px; background: var(--ok-bg); border: 1px solid var(--ok); border-radius: 2px; }
+.ruler .val { position: absolute; top: 6px; height: 14px; background: var(--ink); border-radius: 2px; min-width: 3px; }
+.ruler .tick { position: absolute; top: 20px; font-size: 10px; color: var(--muted); transform: translateX(-50%); }
+
+.agents { display: grid; gap: 10px; grid-template-columns: repeat(auto-fit, minmax(min(100%, 230px), 1fr)); }
+.agent { all: unset; cursor: pointer; display: grid; gap: 6px; padding: 14px 16px; border: 1px solid var(--line); border-radius: var(--r-md); background: var(--surface); }
+.agent[aria-pressed="true"] { border-color: var(--ink); box-shadow: inset 0 0 0 1px var(--ink); }
+.agent .name { font-weight: 700; }
+.agent .desc { font-size: 13.5px; color: var(--muted); }
+.steps { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; }
+.steps li { display: grid; grid-template-columns: 18px minmax(0, 1fr) auto; gap: 10px; align-items: start; font-size: 14px; }
+.steps .s { width: 12px; height: 12px; margin-top: 4px; border-radius: 50%; border: 2px solid var(--muted); }
+.steps .s.running { border-color: var(--accent); border-right-color: transparent; animation: spin 1s linear infinite; }
+.steps .s.done { background: var(--ok); border-color: var(--ok); }
+.steps .s.blocked { background: var(--warn); border-color: var(--warn); }
+.steps .s.failed { background: var(--bad); border-color: var(--bad); }
+@keyframes spin { to { transform: rotate(360deg); } }
+
+.doc { display: grid; gap: 8px; font-size: 15px; }
+.doc h3 { font: 600 20px/1.25 var(--font-display); }
+.doc h4 { margin: 6px 0 0; font: 700 11px/1.3 var(--font-body); letter-spacing: .12em; text-transform: uppercase; color: var(--muted); }
+.doc ul { margin: 0; padding-left: 20px; }
+.doc p { margin: 0; }
+.doc.ar ul { padding-left: 0; padding-right: 20px; }
+
+#toast { position: fixed; right: max(16px, env(safe-area-inset-right, 0px)); bottom: max(16px, env(safe-area-inset-bottom, 0px)); z-index: 20; display: grid; gap: 8px; }
+#toast div { background: var(--ink); color: var(--surface); padding: 10px 14px; border-radius: var(--r-sm); font-size: 14px; max-width: 360px; box-shadow: 0 4px 16px rgba(13, 43, 92, .2); }
+
+@media (max-width: 860px) {
+  .app { grid-template-columns: minmax(0, 1fr); }
+  .rail { position: sticky; top: env(safe-area-inset-top, 0px); z-index: 5; height: auto; flex-direction: row; align-items: center; gap: 14px;
+    padding-block: 10px; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); overflow-x: auto; }
+  .brand .what, .rail-foot { display: none; }
+  .brand .who { font-size: 18px; white-space: nowrap; }
+  .nav { display: flex; gap: 2px; }
+  .nav button { white-space: nowrap; padding: 6px 8px; }
+  main { padding-block: 18px 64px; padding-left: max(16px, env(safe-area-inset-left, 0px)); }
+  .page-head h1 { font-size: 26px; }
+}
+</style>
+
+<div class="app">
+  <aside class="rail">
+    <div class="brand"><span class="who">Qottuf Aljazeera</span><span class="what">Business Development</span></div>
+    <nav class="nav" id="nav" aria-label="Sections"></nav>
+    <div class="rail-foot" id="status"></div>
+  </aside>
+  <main><div class="wrap" id="view"><p class="empty">Loading the console…</p></div></main>
+</div>
+<div id="toast" role="status" aria-live="polite"></div>
+
+<script src="qottuf-console.js"></script>
+<script>
+(() => {
+"use strict";
+const Q = window.QottufConsole;
+const view = document.getElementById("view");
+const VIEWS = [["board", "Board"], ["pipeline", "Pipeline"], ["agents", "Agents"], ["approvals", "Approvals"], ["proof", "Proof"], ["lifts", "Lifts"], ["footprint", "Footprint"], ["check", "Check text"]];
+const ROLES = ["asil", "bid_coordinator", "desk_lead", "technical_office", "estimator", "maintenance_supervisor"];
+// evidence is written by the owner only (db rules); the team files into evidence_drafts and Asil approves (S-G5).
+// decisions is owner-only too: artifact approvals by artifact id, bid decisions (S-G1) as bid-<opportunity id>.
+const COLS = ["opps", "accounts", "evidence", "evidence_drafts", "queue", "decisions", "units", "listings", "checks", "entity", "runs"];
+const S = {
+  view: "board", brand: null, rules: null, rulesVersion: "", bootError: null,
+  sample: null, sampleState: "connecting", db: null, dbState: "connecting", stale: false, readOnly: false,
+  me: { isOwner: false, canEdit: false, canWrite: null, id: null },
+  data: { opps: [], accounts: [], contacts: [], evidence: [], evidence_drafts: [], queue: [], decisions: {}, units: [], listings: [], checks: {}, entity: null, runs: [] },
+  loaded: new Set(),
+  ui: { pipeFilter: "all", showClosed: false, selOpp: null, newOpp: false, selArt: null, artFilter: "waiting", agent: "meeting_brief",
+        evProject: "all", addEvidence: false, selUnit: null, addUnit: false, open: {}, checkResult: null, siteResult: null, editEntity: false },
+  drafts: {}, run: null, errors: {},
+};
+
+// ------------------------------------------------------------------ helpers
+const h = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c]);
+const chip = (text, tone = "") => `<span class="chip ${tone}">${h(text)}</span>`;
+const clean = (x) => JSON.parse(JSON.stringify(x));
+const hasArabic = (s) => /[\u0600-\u06FF]/.test(s || "");
+// Escape, then isolate each Arabic run inside English text so the bidi algorithm can't reorder the punctuation around it.
+const bidi = (s) => h(s).replace(/[\u0600-\u06FF](?:[\u0600-\u06FF\s.\u060C]*[\u0600-\u06FF.])?/g, (m) => `<bdi class="ar-run" lang="ar">${m}</bdi>`);
+const TZ = "Asia/Riyadh";
+const fmtDate = (iso) => iso ? new Intl.DateTimeFormat("en-GB", { day: "numeric", month: "short", year: "numeric", timeZone: TZ }).format(new Date(iso.length === 10 ? iso + "T12:00:00+03:00" : iso)) : "";
+const fmtDateTime = (iso) => iso ? new Intl.DateTimeFormat("en-GB", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit", timeZone: TZ }).format(new Date(iso)) : "";
+const sarM = (n) => n == null ? "" : `${(n / 1e6).toLocaleString("en-US", { maximumFractionDigits: 1 })} m`;
+const band = (o) => o.value_min_sar == null && o.value_max_sar == null ? "value unknown" : `SAR ${sarM(o.value_min_sar ?? o.value_max_sar)}${o.value_max_sar != null && o.value_max_sar !== o.value_min_sar ? `–${sarM(o.value_max_sar)}` : ""}`;
+const today = () => Q.riyadhDate(new Date());
+const hoursLeft = (iso) => Math.round((new Date(iso).getTime() - Date.now()) / 3600000);
+const dueText = (iso) => { const hl = hoursLeft(iso); if (hl < 0) return `overdue ${hl > -48 ? -hl + " h" : Math.round(-hl / 24) + " days"}`; return hl < 48 ? `in ${hl} h` : `in ${Math.round(hl / 24)} days`; };
+const daysTo = (date) => Math.round((Date.parse(date) - Date.parse(today())) / 86400000);
+const newId = (p) => `${p}-${Date.now().toString(36).toUpperCase().slice(-5)}${Math.random().toString(36).slice(2, 4).toUpperCase()}`;
+const localInput = (d) => { const z = new Date(d.getTime() - d.getTimezoneOffset() * 60000); return z.toISOString().slice(0, 16); };
+const fromLocal = (v) => v ? new Date(v).toISOString() : "";
+const byId = (list, id) => list.find((x) => (x.id ?? x._id) === id);
+const accountName = (id) => byId(S.data.accounts, id)?.name_en ?? "";
+// Only full phone numbers stay in text as public: a short code such as "966" would let any number ending in it through.
+const publicNumbers = () => (S.brand?.verified_figures ?? []).filter((f) => f.id === "contact" && String(f.value).replace(/\D/g, "").length >= 7).map((f) => String(f.value));
+const STAGE_TONE = { won: "ok", lost: "bad", no_bid: "", withdrawn: "", cancelled: "", screened: "warn", go: "accent" };
+const stageChip = (s) => chip(s.replace("_", " "), STAGE_TONE[s] ?? "");
+const koTone = (s) => s === "pass" ? "ok" : s === "fail" ? "bad" : "warn";
+
+function toast(msg) {
+  const t = document.createElement("div");
+  t.textContent = msg;
+  document.getElementById("toast").append(t);
+  setTimeout(() => t.remove(), 4200);
+}
+
+function dv(form, name, fallback = "") {
+  const d = S.drafts[form];
+  return d && name in d ? d[name] : fallback;
+}
+
+function errorCopy(e) {
+  if (!e) return "Something went wrong.";
+  if (Q && e instanceof Q.RuleError) return e.message;
+  if (Q && e instanceof Q.ModelCancelledError) return "Stopped.";
+  if (Q && e instanceof Q.ModelUnavailableError) return /not_granted/.test(e.message)
+    ? "Claude was not allowed for this page. Reload it and allow Claude when asked to run agents."
+    : "Claude isn't available in this view. Open the console in Claude while signed in.";
+  if (Q && e instanceof Q.ModelTransientError) return "Claude is busy, or your plan's usage limit was reached. Try again in a few minutes.";
+  if (Q && e instanceof Q.ModelRefusalError) return "Claude declined this request. Change the input and try again.";
+  if (Q && (e instanceof Q.ModelOutputError || e instanceof Q.ModelTruncatedError)) return "Claude's answer didn't come back in the expected shape. Try again; if it repeats, shorten the input.";
+  if (e.issues) return e.issues.map((i) => `${i.path.join(".") || "input"}: ${i.message}`).join("; ");
+  if (e.code === "invalid_argument") return "You can't change the console's data from this view.";
+  if (e.code === "quota_exceeded") return "The console's storage is full. Delete old drafts or runs, then try again.";
+  return e.message || String(e.code || e);
+}
+
+// ------------------------------------------------------------------ data access
+function approvedEvidence({ maxTier = "tender", projectRef } = {}) {
+  const t = today();
+  return S.data.evidence
+    .filter((e) => e.status === "approved" && (!e.expires_at || e.expires_at >= t) && Q.TIER_RANK[e.tier] <= Q.TIER_RANK[maxTier] && (!projectRef || e.project_ref === projectRef))
+    .map(toRecord);
+}
+function toRecord(e) {
+  return { id: e._id, type: e.type, tier: e.tier, project_ref: e.project_ref ?? null, title: e.title, issuer: e.issuer ?? null, issued_at: e.issued_at ?? null,
+    expires_at: e.expires_at ?? null, permitted_uses: e.permitted_uses ?? [], facts: e.facts ?? [], status: e.status };
+}
+const people = () => S.data.contacts.map((c) => ({ contactId: c._id, names: [c.full_name_en, c.full_name_ar].filter(Boolean) }));
+function accountSummary(id) {
+  const a = S.data.accounts.find((x) => x._id === id);
+  return a ? { name_en: a.name_en, name_ar: a.name_ar ?? null, type: a.type, sector: a.sector ?? null, priority_rank: a.priority_rank ?? null } : null;
+}
+function oppSummary(id) {
+  const o = byId(S.data.opps, id);
+  return o ? { id: o.id, title: o.title, stage: o.stage, route: o.route, value_min_sar: o.value_min_sar, value_max_sar: o.value_max_sar, next_step: o.next_step,
+    knockouts: (o.screening?.knockouts ?? []).filter((k) => k.status !== "pass").map((k) => `${k.code} ${k.status}: ${k.detail}`) } : null;
+}
+function proofState() {
+  const proofs = Q.projectProof(approvedEvidence({ maxTier: "tender" }), S.rules);
+  return { proofs, documented: proofs.filter((p) => p.documented).length, ready: proofs.filter((p) => p.referenceReady).length, required: S.rules.proof_test.projects_required, due: S.rules.proof_test.due };
+}
+
+function canWrite() { return S.db && S.me.canWrite !== false && !S.readOnly; }
+async function put(col, id, doc) {
+  try { await S.db.collection(col).doc(id).set(clean(doc)); return true; }
+  catch (e) { if (e.code === "invalid_argument" && S.me.canWrite === null) S.readOnly = true; toast(`Not saved. ${errorCopy(e)}`); schedule(); return false; }
+}
+async function patch(col, id, fields) {
+  try { await S.db.collection(col).doc(id).update(clean(fields)); return true; }
+  catch (e) { toast(`Not saved. ${errorCopy(e)}`); return false; }
+}
+
+// ------------------------------------------------------------------ boot
+async function boot() {
+  route();
+  if (!Q) { S.bootError = "The console's code didn't load. Reload the page."; render(); return; }
+  try {
+    const [b, r] = await Promise.all([fetch("brand-rules.json"), fetch("business-rules.json")]);
+    const brandText = await b.text(), rulesText = await r.text();
+    S.brand = Q.BrandRulesSchema.parse(JSON.parse(brandText));
+    const rules = Q.BusinessRulesSchema.parse(JSON.parse(rulesText));
+    let hash = "local";
+    try { const d = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(rulesText)); hash = [...new Uint8Array(d)].map((x) => x.toString(16).padStart(2, "0")).join("").slice(0, 12); } catch {}
+    S.rulesVersion = `${rules.version}#${hash}`;
+    S.rules = { ...rules, rulesVersion: S.rulesVersion };
+  } catch (e) { S.bootError = "The console's rule files couldn't be read. Reload the page."; render(); return; }
+  render();
+  const use = (name) => window.claude?.use ? window.claude.use(name).catch(() => null) : Promise.resolve(null);
+  const [sample, db, user] = await Promise.all([use("sample"), use("db"), use("user")]);
+  S.sample = sample; S.sampleState = sample ? "ready" : "absent";
+  if (user) {
+    const [isOwner, canEdit, can, id] = await Promise.all([user.isOwner(), user.canEdit(), user.can("data.write"), user.id()]);
+    S.me = { isOwner, canEdit, canWrite: can, id: id ?? (isOwner ? "owner" : null) };
+  }
+  if (!db) { S.dbState = "absent"; render(); return; }
+  S.db = db; S.dbState = "ready";
+  const timer = setTimeout(() => { if (S.loaded.size < COLS.length) { S.stale = true; schedule(); } }, 10000);
+  const query = { queue: db.collection("queue").orderBy("created_at", "desc").limit(300), runs: db.collection("runs").orderBy("at", "desc").limit(40) };
+  for (const col of COLS) {
+    (query[col] ?? db.collection(col)).onSnapshot((snap) => {
+      const docs = snap.docs.map((d) => ({ ...d.data(), _id: d.id }));
+      if (col === "decisions") S.data.decisions = Object.fromEntries(docs.map((d) => [d._id, d]));
+      else if (col === "checks") S.data.checks = Object.fromEntries(docs.map((d) => [d._id, d]));
+      else if (col === "entity") S.data.entity = docs.find((d) => d._id === "master") ?? null;
+      else S.data[col] = docs;
+      if (!snap.metadata.fromCache) S.loaded.add(col);
+      if (S.loaded.size >= COLS.length) { clearTimeout(timer); S.stale = false; }
+      schedule();
+    }, (e) => { S.errors[col] = e.code; S.loaded.add(col); if (e.code === "revoked") S.readOnly = true; schedule(); });
+  }
+  if (S.me.canEdit || S.me.isOwner) {
+    db.collection("contacts").onSnapshot((snap) => { S.data.contacts = snap.docs.map((d) => ({ ...d.data(), _id: d.id })); schedule(); }, () => {});
+  }
+  render();
+}
+
+function route() {
+  const name = location.hash.replace("#", "");
+  S.view = VIEWS.some(([v]) => v === name) ? name : "board";
+}
+window.addEventListener("hashchange", () => { route(); render(); window.scrollTo(0, 0); });
+
+// ------------------------------------------------------------------ rendering
+let raf = 0;
+function schedule() { if (!raf) raf = requestAnimationFrame(() => { raf = 0; render(); }); }
+
+function render() {
+  const active = document.activeElement;
+  const focusId = active && active.id && view.contains(active) ? active.id : null;
+  const sel = focusId && typeof active.selectionStart === "number" ? [active.selectionStart, active.selectionEnd] : null;
+  document.getElementById("nav").innerHTML = navHtml();
+  document.getElementById("status").innerHTML = statusHtml();
+  view.innerHTML = S.bootError ? `<div class="banner bad">${h(S.bootError)}</div>` : (S.rules ? VIEW_HTML[S.view]() : `<p class="empty">Loading the console…</p>`);
+  if (focusId) {
+    const el = document.getElementById(focusId);
+    if (el) { el.focus({ preventScroll: true }); if (sel && el.setSelectionRange) { try { el.setSelectionRange(sel[0], sel[1]); } catch {} } }
+  }
+}
+
+function navHtml() {
+  const waiting = S.data.queue.filter((a) => !S.data.decisions[a._id]).length;
+  const bids = S.data.opps.filter((o) => o.stage === "screened" && !o.screening?.decision).length;
+  const counts = { approvals: waiting, board: bids };
+  return VIEWS.map(([v, label]) => `<button data-act="go" data-view="${v}" ${S.view === v ? 'aria-current="page"' : ""}>${h(label)}${counts[v] ? `<span class="count">${counts[v]}</span>` : ""}</button>`).join("");
+}
+
+function statusHtml() {
+  const role = S.me.isOwner ? "You: owner (Asil)" : S.me.canEdit ? "You: editor" : S.me.canWrite === false ? "You: view only" : "You: team member";
+  const claude = S.sampleState === "ready" ? ["on", "Claude: on your plan"] : S.sampleState === "absent" ? ["off", "Claude: not available here"] : ["", "Claude: connecting"];
+  const data = S.dbState === "ready" ? (S.stale ? ["", "Data: can't be reached yet"] : ["on", "Data: live"]) : S.dbState === "absent" ? ["off", "Data: not available here"] : ["", "Data: connecting"];
+  return [claude, data].map(([c, t]) => `<div class="row"><span class="dot ${c}"></span>${h(t)}</div>`).join("") + `<div class="row"><span class="dot on"></span>${h(role)}</div>`;
+}
+
+function pageHead(title, sub, action = "") {
+  return `<div class="page-head"><div><h1>${h(title)}</h1>${sub ? `<p>${sub}</p>` : ""}</div>${action}</div>${notices()}`;
+}
+
+function notices() {
+  const out = [];
+  if (S.dbState === "absent") out.push(`<div class="banner warn">This view can't reach the console's data. Open the console in Claude, signed in.</div>`);
+  else if (S.stale) out.push(`<div class="banner warn">The console's data can't be reached yet. What's shown may be out of date.</div>`);
+  // The data rules let Contributors and up read and write; Viewers and Commenters are admitted but see no records.
+  if (S.me.canWrite === false) out.push(`<div class="banner">You have view access to this page, and the console's records are shared with Contributors only. Ask Asil for Contributor access to see and use them.</div>`);
+  else if (S.readOnly) out.push(`<div class="banner">Your access changed while the console was open. Reload the page; if changes still fail, ask Asil for Contributor access.</div>`);
+  return out.join("");
+}
+
+// ------------------------------------------------------------------ Board
+function rulerHtml(o) {
+  const max = 150e6, pct = (v) => `${Math.min(100, Math.max(0, (v / max) * 100))}%`;
+  const b = S.rules.contracting.band_sar;
+  const lo = o.value_min_sar ?? o.value_max_sar, hi = o.value_max_sar ?? o.value_min_sar;
+  const val = lo == null ? "" : `<span class="val" style="left:${pct(lo)};width:calc(${pct(hi)} - ${pct(lo)})" title="${h(band(o))}"></span>`;
+  const ticks = [0, 20e6, 50e6, 100e6, 150e6].map((t) => `<span class="tick" style="left:${pct(t)}">${t / 1e6}</span>`).join("");
+  return `<div class="ruler" aria-label="Value against the SAR 20 to 100 million band"><span class="track"></span><span class="band" style="left:${pct(b.min)};width:calc(${pct(b.max)} - ${pct(b.min)})"></span>${val}${ticks}</div>`;
+}
+
+function viewBoard() {
+  const opps = S.data.opps;
+  const bids = opps.filter((o) => o.stage === "screened" && o.screening && !o.screening.decision);
+  const waiting = S.data.queue.filter((a) => !S.data.decisions[a._id]);
+  const proof = proofState();
+  const alerts = Q.consoleAlerts(opps, S.rules, new Date());
+  const t = today();
+  const expiring = S.data.evidence.filter((e) => e.status === "approved" && e.expires_at && daysTo(e.expires_at) <= 60).sort((a, b) => a.expires_at.localeCompare(b.expires_at));
+  const due = Q.dueItems(S.data.units, t, S.rules.maintenance.renewal_window_days);
+  const site = S.data.checks.site, mail = S.data.checks.mail;
+  const decisions = bids.map((o) => {
+    const s = o.screening;
+    const advice = s.overall === "fail" ? "Recommendation: no-bid, unless you override with a reason." : s.overall === "verify" ? "Recommendation: resolve the items marked verify, then decide." : "Knock-outs clear: decide on the scorecard.";
+    return `<div class="panel panel-pad decision">
+      <div class="row between"><h3>${h(o.title)}</h3>${chip(`knock-outs ${s.overall}`, koTone(s.overall))}</div>
+      <div class="row small muted"><span class="mono">${h(o.id)}</span><span>${h(accountName(o.account_id))}</span><span>${h(band(o))}</span><span>Decision ${h(dueText(s.decision_due))}</span></div>
+      ${rulerHtml(o)}
+      <div class="small">${h(advice)}</div>
+      <div class="row">${s.knockouts.filter((k) => k.status !== "pass").map((k) => chip(`${k.code} ${k.status}`, koTone(k.status))).join("")}</div>
+      <div><button class="btn small primary" data-act="open-opp" data-id="${h(o.id)}">Decide</button></div>
+    </div>`;
+  }).join("");
+  const pipeRows = (motion) => {
+    const open = opps.filter((o) => o.motion === motion && Q.isOpen(o.stage));
+    const stages = [...new Set(open.map((o) => o.stage))];
+    if (!open.length) return `<p class="empty">None open.</p>`;
+    return `<table><tbody>${stages.map((st) => { const list = open.filter((o) => o.stage === st); const hi = list.reduce((n, o) => n + (o.value_max_sar ?? o.value_min_sar ?? 0), 0);
+      return `<tr><td>${stageChip(st)}</td><td class="num">${list.length}</td><td class="num muted">${motion === "contracting" && hi ? "up to SAR " + sarM(hi) : ""}</td></tr>`; }).join("")}</tbody></table>`;
+  };
+  const barItem = (ok, label) => `<div class="row">${chip(ok ? "met" : "not met", ok ? "ok" : "bad")}<span>${h(label)}</span></div>`;
+  return pageHead("Board", `What needs you this week. ${proof.documented} of ${proof.required} projects documented for the proof test due ${h(fmtDate(proof.due))}.`) + `
+  <section><h2>Decisions for you</h2>
+    <div class="grid cols-2">${decisions || `<div class="panel panel-pad empty">No bid decisions waiting.</div>`}
+      <div class="panel panel-pad stack">
+        <div class="row between"><h3>Approvals</h3>${chip(`${waiting.length} waiting`, waiting.length ? "warn" : "ok")}</div>
+        ${waiting.slice(0, 5).map((a) => `<div class="row between small"><span>${h(a.title)}</span><span class="row">${chip(a.audience)}${a.gateReport?.passed ? "" : chip("blocked", "bad")}</span></div>`).join("") || `<p class="empty">Nothing waiting. Drafts from the agents land here.</p>`}
+        <div><button class="btn small" data-act="go" data-view="approvals">Open approvals</button></div>
+      </div>
+    </div>
+  </section>
+  <section><h2>Proof</h2>
+    <div class="panel panel-pad stack">
+      <div class="row between"><div class="row"><span class="big">${proof.documented}<span class="muted" style="font-size:18px"> of ${proof.required}</span></span><span class="small muted">projects documented: contract value, start and completion dates, contract and completion certificate</span></div>${chip(`due ${fmtDate(proof.due)}`, proof.documented >= proof.required ? "ok" : "warn")}</div>
+      <div class="meter">${Array.from({ length: proof.required }, (_, i) => `<i class="${i < proof.documented ? "on" : ""}"></i>`).join("")}</div>
+      <div class="small muted">${proof.proofs.length ? `${proof.proofs.filter((p) => !p.documented).length} projects on file are missing documents. The commonest gap: ${h(topMissing(proof.proofs))}.` : "No project evidence on file yet."} <button class="linkish" data-act="go" data-view="proof">See every project</button></div>
+    </div>
+  </section>
+  <div class="grid cols-2">
+    <section><h2>Contracting pipeline</h2><div class="panel panel-pad">${pipeRows("contracting")}</div></section>
+    <section><h2>Elevators and maintenance</h2><div class="panel panel-pad">${pipeRows("elevator")}</div></section>
+  </div>
+  <div class="grid cols-2">
+    <section><h2>Alerts</h2><div class="panel panel-pad stack small">${alerts.map((a) => `<div class="row between"><span>${h(a.title)}: ${h(a.detail)}</span><span class="muted">${h(a.owner)}</span></div>`).join("") || `<p class="empty">No alerts.</p>`}</div></section>
+    <section><h2>Coming due</h2><div class="panel panel-pad stack small">
+      ${expiring.map((e) => `<div class="row between"><span>${h(e.title)}</span>${chip(`${daysTo(e.expires_at)} days`, daysTo(e.expires_at) <= 30 ? "bad" : "warn")}</div>`).join("")}
+      ${due.map((d) => `<div class="row between"><span>${h(d.kind.replace("_", " "))}: ${h(d.site)}</span>${chip(d.overdue ? "overdue" : `${d.days} days`, d.overdue || d.days <= 30 ? "bad" : "warn")}</div>`).join("")}
+      ${!expiring.length && !due.length ? `<p class="empty">Nothing due in the next 60 days.</p>` : ""}
+    </div></section>
+  </div>
+  <section><h2>Public footprint</h2><div class="grid cols-2">
+    <div class="panel panel-pad stack small"><div class="row between"><h3>Website</h3>${site ? chip(`${Object.values(site.verdict.bar).filter(Boolean).length} of 4 met`, "warn") : chip("not checked")}</div>
+      ${site ? [barItem(site.verdict.bar.nothing_false, "Nothing false"), barItem(site.verdict.bar.working_contacts, "Working contacts"), barItem(site.verdict.bar.both_languages, "Both languages"), barItem(site.verdict.bar.enquiry_form_with_consent, "Enquiry form with consent wording")].join("") : ""}
+    </div>
+    <div class="panel panel-pad stack small"><div class="row between"><h3>Quote inbox</h3>${mail ? chip(mail.report.verdict.replace("_", " "), mail.report.verdict === "protected" ? "ok" : "bad") : chip("not checked")}</div>
+      ${mail ? `<p style="margin:0">${h(mail.report.summary)}</p>` : ""}<div><button class="btn small" data-act="go" data-view="footprint">Open footprint</button></div>
+    </div>
+  </div></section>`;
+}
+
+function topMissing(proofs) {
+  const n = {};
+  for (const p of proofs) for (const m of p.missing) n[m] = (n[m] ?? 0) + 1;
+  return Object.entries(n).sort((a, b) => b[1] - a[1])[0]?.[0] ?? "none";
+}
+
+// ------------------------------------------------------------------ Pipeline
+function viewPipeline() {
+  const f = S.ui.pipeFilter;
+  const list = S.data.opps
+    .filter((o) => (f === "all" || o.motion === f) && (S.ui.showClosed || Q.isOpen(o.stage)))
+    .sort((a, b) => (a.next_step?.due_at ?? "9").localeCompare(b.next_step?.due_at ?? "9"));
+  const seg = [["all", "All"], ["contracting", "Contracting"], ["elevator", "Elevators"]].map(([v, l]) => `<button data-act="pipe-filter" data-v="${v}" aria-pressed="${f === v}">${l}</button>`).join("");
+  const rows = list.map((o) => {
+    const ns = o.next_step;
+    const overdue = ns && new Date(ns.due_at) < new Date();
+    return `<tr class="click ${S.ui.selOpp === o.id ? "sel" : ""}" data-act="open-opp" data-id="${h(o.id)}">
+      <td><div>${h(o.title)}</div><div class="small muted"><span class="mono">${h(o.id)}</span> ${h(accountName(o.account_id))}${o.example ? " · example" : ""}</div></td>
+      <td>${stageChip(o.stage)}</td><td class="num small">${o.motion === "contracting" ? h(band(o)) : ""}</td>
+      <td class="small">${ns ? `${h(ns.action)}<div class="${overdue ? "" : "muted"}" style="${overdue ? "color:var(--bad)" : ""}">${h(ns.owner)}, ${h(dueText(ns.due_at))}</div>` : `<span class="muted">${o.outcome?.result ? h(String(o.outcome.result).replace("_", " ")) : "closed"}</span>`}</td>
+      <td>${o.screening ? chip(o.screening.overall, koTone(o.screening.overall)) : ""}</td></tr>`;
+  }).join("");
+  const sel = S.ui.selOpp ? byId(S.data.opps, S.ui.selOpp) : null;
+  const examples = S.data.opps.filter((o) => o.example).length + S.data.accounts.filter((a) => a.example).length;
+  const confirming = S.ui.confirmRemove && Date.now() - S.ui.confirmRemove < 6000;
+  return pageHead("Pipeline", "Every open opportunity has an owner, a next step and a date. Contracting is main contracts of SAR 20–100 m; elevators include villa lifts.",
+    canWrite() ? `<div class="row">${examples && (S.me.isOwner || S.me.canEdit) ? `<button class="btn ${confirming ? "danger" : ""}" data-act="remove-examples">${confirming ? `Click again to remove ${examples} example records` : "Remove the example records"}</button>` : ""}<button class="btn" data-act="new-account">New account</button><button class="btn primary" data-act="new-opp">New opportunity</button></div>` : "") + `
+  ${S.ui.newAccount ? accountForm() : ""}
+  ${S.ui.newOpp ? newOppForm() : ""}
+  <div class="row between"><div class="seg" role="group" aria-label="Motion">${seg}</div>
+    <label class="check-inline small"><input type="checkbox" id="show-closed" data-act="show-closed"${S.ui.showClosed ? "checked" : ""}> Show closed</label></div>
+  <div class="panel table-wrap">${list.length ? `<table><thead><tr><th>Opportunity</th><th>Stage</th><th>Value</th><th>Next step</th><th>Knock-outs</th></tr></thead><tbody>${rows}</tbody></table>` : `<p class="empty panel-pad">No opportunities here yet. Add the first one with New opportunity.</p>`}</div>
+  ${sel ? oppDetail(sel) : ""}`;
+}
+
+function nextStepFields(form, prefix = "") {
+  const due = dv(form, "due", localInput(new Date(Date.now() + 86400000)));
+  return `<div class="fields">
+    <label class="f">Next step<input type="text" id="${form}-action" name="action" required minlength="3" value="${h(dv(form, "action"))}" placeholder="e.g. Call the PMC about the site walk"></label>
+    <label class="f">Owner<input type="text" id="${form}-owner" name="owner" list="roles" required value="${h(dv(form, "owner", "asil"))}"></label>
+    <label class="f">Due<input type="datetime-local" id="${form}-due" name="due" required value="${h(due)}"></label></div>`;
+}
+
+const ACCOUNT_TYPES = ["owner", "developer", "pmc", "consultant", "main_contractor", "university", "hospital_group", "bank", "corporate", "government", "other"];
+function accountForm() {
+  const F = "acct";
+  return `<form class="panel panel-pad" data-form="${F}">
+    <div class="row between"><h3>New account</h3><button type="button" class="btn small" data-act="close-account">Cancel</button></div>
+    <div class="fields">
+      <label class="f">Name<input type="text" id="${F}-name" name="name_en" required minlength="2" value="${h(dv(F, "name_en"))}"></label>
+      <label class="f">Name in Arabic <span class="hint">optional</span><input type="text" id="${F}-name-ar" name="name_ar" dir="rtl" lang="ar" class="ar" value="${h(dv(F, "name_ar"))}"></label>
+      <label class="f">Type<select id="${F}-type" name="type">${ACCOUNT_TYPES.map((t) => `<option value="${t}" ${dv(F, "type", "owner") === t ? "selected" : ""}>${t.replace(/_/g, " ")}</option>`).join("")}</select></label>
+      <label class="f">Sector <span class="hint">optional</span><input type="text" id="${F}-sector" name="sector" value="${h(dv(F, "sector"))}" placeholder="education, healthcare, banking"></label>
+      <label class="f">Priority <span class="hint">1 to 20, optional</span><input type="number" min="1" max="20" id="${F}-rank" name="priority_rank" value="${h(dv(F, "priority_rank"))}"></label>
+    </div>
+    <p class="small muted" style="margin:0">An account is an organisation. People's names and numbers aren't stored here.</p>
+    <div class="row"><button class="btn primary">Add account</button><span class="form-error" id="${F}-error"></span></div>
+  </form>`;
+}
+
+function newOppForm() {
+  const F = "newopp";
+  const motion = dv(F, "motion", "contracting");
+  const accounts = S.data.accounts.map((a) => `<option value="${h(a._id)}" ${dv(F, "account_id") === a._id ? "selected" : ""}>${h(a.name_en)}</option>`).join("");
+  const lines = S.rules.contracting.service_lines;
+  return `<form class="panel panel-pad" data-form="${F}">
+    <div class="row between"><h3>New opportunity</h3><button type="button" class="btn small" data-act="close-new-opp">Cancel</button></div>
+    <div class="fields">
+      <label class="f">Motion<select id="${F}-motion" name="motion" data-redraw>${["contracting", "elevator"].map((m) => `<option value="${m}" ${motion === m ? "selected" : ""}>${m === "contracting" ? "Contracting (main contract)" : "Elevator or maintenance"}</option>`).join("")}</select></label>
+      <label class="f">Title<input type="text" id="${F}-title" name="title" required value="${h(dv(F, "title"))}"></label>
+      <label class="f">Account<select id="${F}-account" name="account_id"><option value="">None yet</option>${accounts}</select></label>
+      ${motion === "contracting" ? `
+      <label class="f">Stage<select id="${F}-stage" name="stage">${["invitation", "signal", "capture", "prequalification"].map((s) => `<option ${dv(F, "stage") === s ? "selected" : ""}>${s}</option>`).join("")}</select></label>
+      <label class="f">Route<select id="${F}-route" name="route">${["invited_private", "etimad_public", "direct_negotiated", "framework", "prequalification_list"].map((s) => `<option ${dv(F, "route") === s ? "selected" : ""}>${s}</option>`).join("")}</select></label>
+      <label class="f">Qottuf's role<select id="${F}-role" name="qottuf_role">${["main_contractor", "jv_partner", "subcontractor"].map((s) => `<option ${dv(F, "qottuf_role") === s ? "selected" : ""}>${s}</option>`).join("")}</select></label>
+      <label class="f">Sector<input type="text" id="${F}-sector" name="sector" value="${h(dv(F, "sector", "education"))}"></label>
+      <label class="f">Value from <span class="hint">SAR million</span><input type="number" step="0.1" min="0" id="${F}-lo" name="lo" value="${h(dv(F, "lo"))}"></label>
+      <label class="f">Value to <span class="hint">SAR million</span><input type="number" step="0.1" min="0" id="${F}-hi" name="hi" value="${h(dv(F, "hi"))}"></label>
+      <label class="f">Submission deadline<input type="datetime-local" id="${F}-deadline" name="deadline" value="${h(dv(F, "deadline"))}"></label>` : `
+      <label class="f">Route<select id="${F}-route" name="route">${["inbound_elevator", "maintenance_renewal"].map((s) => `<option ${dv(F, "route") === s ? "selected" : ""}>${s}</option>`).join("")}</select></label>`}
+    </div>
+    ${motion === "contracting" ? `<fieldset><legend>Service lines</legend>${lines.map((l) => `<label class="check-inline"><input type="checkbox" id="${F}-line-${h(l)}" name="lines" value="${h(l)}"${dv(F, `line:${l}`, l === "fit_out") ? "checked" : ""}> ${h(l.replace(/_/g, " "))}</label>`).join("")}</fieldset>` : ""}
+    ${nextStepFields(F)}
+    <div class="row"><button class="btn primary">Add opportunity</button><span class="form-error" id="${F}-error"></span></div>
+  </form>`;
+}
+
+function oppDetail(o) {
+  const s = o.screening;
+  const allowed = Q.allowedNext(o.motion, o.stage).filter((x) => !(o.motion === "contracting" && ["screened", "go"].includes(x)) && !(o.stage === "screened"));
+  let actions = "";
+  if (canWrite() && Q.isOpen(o.stage)) {
+    if (o.motion === "contracting" && o.stage === "invitation") actions += `<button class="btn primary" data-act="screen" data-id="${h(o.id)}">Screen against the rules</button>`;
+    if (o.stage === "screened") actions += S.me.isOwner ? decisionForm(o) : `<p class="small muted">Waiting for Asil's bid decision (gate S-G1), ${h(dueText(s.decision_due))}.</p>`;
+  }
+  const kos = s ? `<div class="table-wrap"><table><thead><tr><th>Check</th><th>Result</th><th>Detail</th></tr></thead><tbody>${s.knockouts.map((k) => `<tr><td>${h(k.label)} <span class="mono muted">${h(k.code)}</span></td><td>${chip(k.status, koTone(k.status))}</td><td class="small">${h(k.detail)}${k.alternative ? `<div class="muted">Alternative: ${h(k.alternative)}</div>` : ""}</td></tr>`).join("")}</tbody></table></div>` : "";
+  // The opportunity document is team-writable; the owner-only decisions/bid-<id> record is what proves Asil decided.
+  const record = S.data.decisions[`bid-${o.id}`];
+  const verified = s?.decision && record && record.decision === s.decision.decision && record.at === s.decision.at;
+  const dec = s?.decision ? `<div class="row small"><span>Decision: <strong>${h(s.decision.decision === "go" ? "bid" : "no-bid")}</strong>, ${h(fmtDateTime(s.decision.at))}. ${h(s.decision.reason)}${s.decision.override ? ` Override: ${h(s.decision.override)}` : ""}${s.score ? ` Score ${s.score.score}${s.score.partial ? " (partial)" : ""}, scorecard says ${h(s.score.recommendation.replace("_", "-"))}.` : ""}</span>
+    ${verified ? chip("recorded by Asil", "ok") : chip("no owner record: check with Asil", "bad")}</div>` : "";
+  return `<section class="panel panel-pad stack" id="opp-detail">
+    <div class="row between"><div><h3>${h(o.title)}</h3><div class="small muted"><span class="mono">${h(o.id)}</span> ${h(accountName(o.account_id))}${o.example ? " · example record" : ""}</div></div><div class="row">${stageChip(o.stage)}<button class="btn small" data-act="close-opp">Close</button></div></div>
+    <dl class="kv"><dt>Motion</dt><dd>${h(o.motion)}</dd><dt>Route</dt><dd>${h(o.route)}</dd><dt>Role</dt><dd>${h(o.qottuf_role)}</dd>
+      ${o.motion === "contracting" ? `<dt>Value</dt><dd>${h(band(o))}${rulerHtml(o)}</dd><dt>Deadline</dt><dd>${o.dates?.submission_deadline ? h(fmtDateTime(o.dates.submission_deadline)) : "not recorded"}</dd>` : ""}
+      <dt>Next step</dt><dd>${o.next_step ? `${h(o.next_step.action)} (${h(o.next_step.owner)}, ${h(fmtDateTime(o.next_step.due_at))})` : "none"}</dd></dl>
+    ${kos}${dec}
+    ${actions ? `<div class="stack">${actions}</div>` : ""}
+    ${canWrite() && Q.isOpen(o.stage) && o.stage !== "screened" && allowed.length ? moveForm(o, allowed) : ""}
+    ${canWrite() && Q.isOpen(o.stage) ? `<details ${S.ui.open.nextstep ? "open" : ""} data-key="nextstep"><summary>Change the next step</summary><form data-form="nextstep" data-id="${h(o.id)}" style="margin-top:10px">${nextStepFields("nextstep")}<div><button class="btn small">Save next step</button></div></form></details>` : ""}
+    <details ${S.ui.open.history ? "open" : ""} data-key="history"><summary>History (${o.history?.length ?? 0})</summary><div class="stack small" style="margin-top:8px">${(o.history ?? []).slice().reverse().map((e) => `<div>${h(fmtDateTime(e.at))}: ${h(e.event)}${e.from ? ` ${h(e.from)} → ${h(e.to)}` : e.to ? ` ${h(e.to)}` : ""}${e.detail ? `, ${h(e.detail)}` : ""}</div>`).join("")}</div></details>
+  </section>`;
+}
+
+function decisionForm(o) {
+  const F = "decide";
+  const fail = o.screening.overall === "fail";
+  const decision = dv(F, "decision", fail ? "no_bid" : "go");
+  const factors = S.rules.scorecard.factors.map((x) => `<label class="f">${h(x.label)} <span class="hint">weight ${x.weight}</span>
+    <select id="${F}-f-${x.id}" name="f-${x.id}"><option value="">no data</option>${[0, 1, 2, 3].map((v) => `<option ${dv(F, `f-${x.id}`) === String(v) ? "selected" : ""}>${v}</option>`).join("")}</select>
+    <input type="text" id="${F}-e-${x.id}" name="e-${x.id}" placeholder="evidence for a 2 or 3" value="${h(dv(F, `e-${x.id}`))}"></label>`).join("");
+  return `<form class="panel panel-pad stack" data-form="${F}" data-id="${h(o.id)}" style="background:var(--surface-2)">
+    <h3>Your decision (gate S-G1)</h3>
+    <div class="seg" role="radiogroup">${["go", "no_bid"].map((v) => `<button type="button" data-act="decide-pick" data-v="${v}" aria-pressed="${decision === v}">${v === "go" ? "Bid" : "No-bid"}</button>`).join("")}</div>
+    <input type="hidden" id="decide-decision" name="decision" value="${h(decision)}">
+    <label class="f">Reason<input type="text" id="${F}-reason" name="reason" required value="${h(dv(F, "reason"))}"></label>
+    ${decision === "go" && fail ? `<label class="f">A knock-out failed. Why bid anyway?<input type="text" id="${F}-override" name="override" required value="${h(dv(F, "override"))}"></label>` : ""}
+    ${decision === "go" ? nextStepFields(F) : ""}
+    <details ${S.ui.open.score ? "open" : ""} data-key="score"><summary>Scorecard (optional)</summary><div class="fields" style="margin-top:10px">${factors}</div></details>
+    <div class="row"><button class="btn primary">Record decision</button><span class="form-error" id="${F}-error"></span></div>
+  </form>`;
+}
+
+function moveForm(o, allowed) {
+  const F = "move";
+  const to = dv(F, "to", allowed[0]);
+  const open = Q.isOpen(to);
+  return `<form class="stack" data-form="${F}" data-id="${h(o.id)}">
+    <div class="fields"><label class="f">Move to<select id="${F}-to" name="to" data-redraw>${allowed.map((a) => `<option ${a === to ? "selected" : ""}>${a}</option>`).join("")}</select></label>
+      ${to === "lost" ? `<label class="f">Main reason<select id="${F}-reason-l" name="primary_reason">${Q.LOSS_REASONS.map((r) => `<option>${r}</option>`).join("")}</select></label><label class="f">Winner, if known<input type="text" id="${F}-winner" name="winner" value="${h(dv(F, "winner"))}"></label>` : ""}
+      ${to === "won" ? `<label class="f">Contract value <span class="hint">SAR</span><input type="number" min="1" id="${F}-value" name="value_sar" required value="${h(dv(F, "value_sar"))}"></label>` : ""}
+      ${["no_bid", "withdrawn", "cancelled"].includes(to) ? `<label class="f">Why<input type="text" id="${F}-why" name="reason" required value="${h(dv(F, "reason"))}"></label>` : ""}</div>
+    ${open ? nextStepFields(F) : ""}
+    <div class="row"><button class="btn">Move</button><span class="form-error" id="${F}-error"></span></div>
+  </form>`;
+}
+
+// ------------------------------------------------------------------ Agents
+const AGENTS = {
+  meeting_brief: { name: "Meeting brief", desc: "A one-page brief for your next meeting: objective, proof to bring, questions, asks, what not to say." },
+  meeting_debrief: { name: "Debrief", desc: "Turns your rough notes into decisions, commitments to check, next steps and objections in their words." },
+  case_study: { name: "Case study", desc: "A short English and Arabic case study from approved evidence only. Every figure is checked." },
+  bilingual: { name: "Bilingual editor", desc: "Writes the other language as a parallel original, with every figure carried across." },
+};
+const STEP_LABEL = {
+  case_study_writer: "Claude drafts the case study", claim_extractor: "A second Claude pass lists every claim", meeting_brief: "Claude prepares the brief",
+  meeting_debrief: "Claude structures your notes", bilingual_editor: "Claude writes the other language",
+};
+
+function viewAgents() {
+  const a = S.ui.agent;
+  const cards = Object.entries(AGENTS).map(([k, v]) => `<button class="agent" data-act="pick-agent" data-v="${k}" aria-pressed="${a === k}"><span class="name">${h(v.name)}</span><span class="desc">${h(v.desc)}</span></button>`).join("");
+  const unavailable = S.sampleState !== "ready";
+  return pageHead("Agents", "Each run uses Claude on your own plan, and every draft lands in Approvals. Phone numbers, emails, ID numbers and titled names (Eng., Dr., المهندس) are removed before Claude sees anything; write other people's roles, not their names.") + `
+  ${unavailable ? `<div class="banner warn">${S.sampleState === "connecting" ? "Connecting to Claude…" : "Claude isn't available in this view. Open the console in Claude while signed in."}</div>` : ""}
+  <div class="agents">${cards}</div>
+  <div class="grid cols-2">
+    <section class="panel panel-pad">${agentForm(a)}</section>
+    <section class="panel panel-pad">${runPanel()}</section>
+  </div>`;
+}
+
+function accountSelect(F) {
+  return `<label class="f">Account<select id="${F}-account" name="account_id" data-redraw required><option value="">Choose</option>${S.data.accounts.map((x) => `<option value="${h(x._id)}" ${dv(F, "account_id") === x._id ? "selected" : ""}>${h(x.name_en)}</option>`).join("")}</select></label>
+    ${S.data.accounts.length ? "" : `<p class="small muted" style="margin:0">No accounts yet. Add the first one in Pipeline, with New account.</p>`}`;
+}
+function oppSelect(F) {
+  const acc = dv(F, "account_id");
+  const list = S.data.opps.filter((o) => !acc || o.account_id === acc);
+  return `<label class="f">Opportunity <span class="hint">optional</span><select id="${F}-opp" name="opportunity_id"><option value="">None</option>${list.map((o) => `<option value="${h(o.id)}" ${dv(F, "opportunity_id") === o.id ? "selected" : ""}>${h(o.title)}</option>`).join("")}</select></label>`;
+}
+
+function agentForm(a) {
+  const busy = S.run?.status === "running";
+  const go = `<div class="row"><button class="btn primary" ${busy || S.sampleState !== "ready" ? "disabled" : ""}>Run the agent</button><span class="form-error" id="agent-error"></span></div>`;
+  if (a === "meeting_brief") {
+    const F = "brief";
+    return `<form data-form="agent-brief"><h3>Meeting brief</h3>${accountSelect(F)}${oppSelect(F)}
+      <div class="fields"><label class="f">Meeting date<input type="date" id="${F}-date" name="meeting_at" required value="${h(dv(F, "meeting_at", today()))}"></label>
+      <label class="f">Purpose<input type="text" id="${F}-purpose" name="purpose" required value="${h(dv(F, "purpose"))}" placeholder="e.g. First meeting with the PMC"></label></div>
+      <label class="f">Your notes <span class="hint">optional; write roles, not names</span><textarea id="${F}-notes" name="notes" dir="auto">${h(dv(F, "notes"))}</textarea></label>${go}</form>`;
+  }
+  if (a === "meeting_debrief") {
+    const F = "debrief";
+    return `<form data-form="agent-debrief"><h3>Debrief</h3>${accountSelect(F)}${oppSelect(F)}
+      <label class="f">Your notes from the meeting <span class="hint">English, Arabic or both; write roles, not names</span><textarea class="tall" id="${F}-notes" name="notes" required minlength="10" dir="auto">${h(dv(F, "notes"))}</textarea></label>${go}</form>`;
+  }
+  if (a === "case_study") {
+    const F = "case";
+    const projects = [...new Set(S.data.evidence.filter((e) => e.project_ref && e.status === "approved").map((e) => e.project_ref))].sort();
+    const pr = dv(F, "project_ref", projects[0] ?? "");
+    const aud = dv(F, "audience", "public");
+    const recs = approvedEvidence({ maxTier: aud === "public" ? "public" : "tender", projectRef: pr });
+    const named = recs.some((r) => r.type === "client_naming_approval" && r.permitted_uses.includes(`name_client:${aud}`));
+    const facts = recs.flatMap((r) => r.facts).filter((f) => f.kind !== "statement" || ["scope", "constraint", "project_title", "location"].includes(f.name));
+    return `<form data-form="agent-case"><h3>Case study</h3>
+      <div class="fields"><label class="f">Project<select id="${F}-project" name="project_ref" data-redraw>${projects.map((p) => `<option ${p === pr ? "selected" : ""}>${h(p)}</option>`).join("")}</select></label>
+      <label class="f">For<select id="${F}-aud" name="audience" data-redraw>${[["public", "Public (website, LinkedIn)"], ["tender", "A tender or prequalification pack"]].map(([v, l]) => `<option value="${v}" ${aud === v ? "selected" : ""}>${l}</option>`).join("")}</select></label></div>
+      <p class="small muted" style="margin:0">${recs.length} approved records, ${facts.length} usable facts. ${named ? "The client may be named for this use." : "The client won't be named: no approval for this use."}</p>${go}</form>`;
+  }
+  const F = "bi";
+  const reg = dv(F, "register", "formal_msa");
+  return `<form data-form="agent-bilingual"><h3>Bilingual editor</h3>
+    <div class="fields"><label class="f">Source language<select id="${F}-lang" name="source_lang">${[["en", "English"], ["ar", "Arabic"]].map(([v, l]) => `<option value="${v}" ${dv(F, "source_lang") === v ? "selected" : ""}>${l}</option>`).join("")}</select></label>
+    <label class="f">For<select id="${F}-aud" name="audience">${[["client", "A client or tender"], ["public", "Public"], ["internal", "Internal"], ["asil", "Me"]].map(([v, l]) => `<option value="${v}" ${dv(F, "audience") === v ? "selected" : ""}>${l}</option>`).join("")}</select></label>
+    <label class="f">Purpose<input type="text" id="${F}-purpose" name="purpose" list="purposes" required value="${h(dv(F, "purpose", "prequalification pack"))}"></label>
+    <label class="f">Arabic register<select id="${F}-reg" name="register">${[["formal_msa", "Formal Modern Standard Arabic"], ["saudi_conversational", "Saudi conversational (elevator ads only)"]].map(([v, l]) => `<option value="${v}" ${reg === v ? "selected" : ""}>${l}</option>`).join("")}</select></label></div>
+    <label class="f">Text<textarea class="tall" id="${F}-text" name="source_text" required dir="auto">${h(dv(F, "source_text"))}</textarea></label>${go}
+    <datalist id="purposes"><option value="prequalification pack"><option value="tender cover letter"><option value="LinkedIn post"><option value="elevator_ad"><option value="website copy"></datalist></form>`;
+}
+
+function runPanel() {
+  const r = S.run;
+  if (!r) return `<h3>Run</h3><p class="empty">Pick an agent, fill in the form and run it. You'll see each step here, then the draft and its checks.</p>`;
+  const steps = r.steps.map((s) => `<li><span class="s ${s.state}"></span><span>${h(s.label)}${s.detail ? `<div class="small muted">${h(s.detail)}</div>` : ""}</span><span class="small muted num">${s.ms != null ? (s.ms / 1000).toFixed(0) + " s" : ""}</span></li>`).join("");
+  const res = r.result;
+  return `<div class="row between"><h3>${h(AGENTS[r.kind]?.name ?? "Run")}</h3>${r.status === "running" ? `<button class="btn small danger" data-act="stop-run">Stop</button>` : chip(r.status === "succeeded" ? "done" : r.status === "needs_human" ? "needs you" : r.status, r.status === "succeeded" ? "ok" : r.status === "failed" ? "bad" : "warn")}</div>
+    <ul class="steps" style="margin-top:12px">${steps}</ul>
+    ${r.error ? `<div class="banner bad" style="margin-top:12px">${h(r.error)}</div>` : ""}
+    ${res ? `<div class="stack" style="margin-top:14px">${res.note ? `<p class="small" style="margin:0">${h(res.note)}</p>` : ""}
+      <div class="row">${chip(res.passed ? "checks passed" : "checks blocked", res.passed ? "ok" : "bad")}${chip(`${res.blocking} blocking`)}${chip(`${res.warnings} warnings`)}</div>
+      <div><button class="btn small primary" data-act="open-art" data-id="${h(res.id)}">Open the draft in Approvals</button></div></div>` : ""}`;
+}
+
+async function runAgent(kind, input) {
+  const ctl = new AbortController();
+  const t0 = Date.now();
+  S.run = { kind, status: "running", steps: [], ctl };
+  const add = (label, state = "running", detail = "") => { const s = { label, state, detail, start: Date.now(), ms: null }; S.run.steps.push(s); schedule(); return s; };
+  const end = (s, state, detail) => { s.state = state; if (detail !== undefined) s.detail = detail; s.ms = Date.now() - s.start; schedule(); };
+  add("Personal data removed before Claude sees the input", "done");
+  const model = new Q.SampleModelClient(S.sample, { signal: ctl.signal, publicNumbers: publicNumbers() });
+  const env = {
+    brand: S.brand, rulesVersion: S.rulesVersion, people: people(), publicNumbers: publicNumbers(),
+    callAgent: async (agent, pv, fn) => {
+      const s = add(STEP_LABEL[agent] ?? agent);
+      try { const r = await fn(model); end(s, "done", `answered on your Claude plan (${r.modelServed.replace("claude-plan:", "")} tier)`); return r; }
+      catch (e) { end(s, "failed", errorCopy(e)); throw e; }
+    },
+    step: (st) => { const s = add(st.step.startsWith("gates") ? `Checks: brand, figures, personal data${st.step.includes("2") ? " (after the revision)" : ""}` : st.step.replace(/^remove failing sentences$/, "Removed the sentences that still failed"), st.outcome === "ok" ? "done" : "blocked");
+      const d = st.details ?? {};
+      s.detail = d.removed != null ? `${d.removed} removed` : [d.blocking != null ? `${d.blocking} blocking` : "", d.warnings != null ? `${d.warnings} warnings` : ""].filter(Boolean).join(", ");
+      s.ms = 0; },
+  };
+  try {
+    let res;
+    if (kind === "case_study") res = await Q.caseStudyWorkflow(env, input, approvedEvidence({ maxTier: input.audience === "public" ? "public" : "tender", projectRef: input.project_ref }));
+    else if (kind === "meeting_brief") {
+      const ev = approvedEvidence({ maxTier: "tender" });
+      res = await Q.meetingBriefWorkflow(env, input, { account: accountSummary(input.account_id), opportunity: input.opportunity_id ? oppSummary(input.opportunity_id) : null, evidence: ev, proof: Q.projectProof(ev, S.rules) });
+    } else if (kind === "meeting_debrief") res = await Q.meetingDebriefWorkflow(env, input, { account: accountSummary(input.account_id) });
+    else res = await Q.bilingualWorkflow(env, input, approvedEvidence({ maxTier: input.audience === "public" ? "public" : "tender", ...(input.project_ref ? { projectRef: input.project_ref } : {}) }));
+    const runId = newId("RUN");
+    let artId = null;
+    if (res.artifact) {
+      artId = newId("ART");
+      const ok = await put("queue", artId, { ...res.artifact, status: res.status, note: res.note ?? null, created_by: S.me.id, created_at: new Date().toISOString(), run_id: runId });
+      if (!ok) artId = null;
+    }
+    S.run.status = res.status;
+    S.run.result = artId ? { id: artId, note: res.note, passed: res.artifact.gateReport.passed, blocking: res.artifact.gateReport.blocking.length, warnings: res.artifact.gateReport.warnings.length } : null;
+    if (!res.artifact && res.note) S.run.error = res.note;
+    await put("runs", runId, { at: new Date().toISOString(), by: S.me.id, agent: kind, status: res.status, artifact_id: artId, note: res.note ?? null,
+      duration_ms: Date.now() - t0, steps: S.run.steps.map((s) => ({ label: s.label, state: s.state, detail: s.detail, ms: s.ms })) });
+    toast(artId ? "Draft sent to Approvals." : "The run finished without a draft.");
+  } catch (e) {
+    S.run.status = e instanceof Q.ModelCancelledError ? "stopped" : "failed";
+    S.run.error = errorCopy(e);
+  }
+  schedule();
+}
+
+// ------------------------------------------------------------------ Approvals
+function renderDoc(text) {
+  if (!text) return "";
+  const ar = hasArabic(text) && !/[A-Za-z]{4,}/.test(text.replace(/[\u0600-\u06FF\s.,،؛]/g, "").slice(0, 200));
+  const out = [];
+  let list = null;
+  const inline = (s) => h(s).replace(/\*\*(.+?)\*\*/g, "<strong>$1</strong>");
+  for (const raw of text.split("\n")) {
+    const line = raw.trim();
+    if (!line) { if (list) { out.push(`<ul>${list.join("")}</ul>`); list = null; } continue; }
+    if (line.startsWith("- ")) { (list ??= []).push(`<li>${inline(line.slice(2))}</li>`); continue; }
+    if (list) { out.push(`<ul>${list.join("")}</ul>`); list = null; }
+    if (line.startsWith("# ")) out.push(`<h3>${inline(line.slice(2))}</h3>`);
+    else if (line.startsWith("## ")) out.push(`<h4>${inline(line.slice(3))}</h4>`);
+    else out.push(`<p>${inline(line)}</p>`);
+  }
+  if (list) out.push(`<ul>${list.join("")}</ul>`);
+  return `<div class="doc ${ar ? "ar" : ""}" ${ar ? 'dir="rtl" lang="ar"' : ""}>${out.join("")}</div>`;
+}
+
+function approvalBlocker(a) {
+  const external = a.audience === "client" || a.audience === "public";
+  if (external && !a.gateReport?.passed) return "It failed its checks. Client and public material can't be approved until it passes: reject it with a reason, or run the agent again.";
+  if (external && a.evidenceTierMax === "internal") return "It rests on internal evidence, which never leaves Qottuf.";
+  return null;
+}
+
+function viewApprovals() {
+  const f = S.ui.artFilter;
+  const list = S.data.queue.filter((a) => { const d = S.data.decisions[a._id]; return f === "waiting" ? !d : d?.status === f; });
+  const seg = [["waiting", "Waiting"], ["approved", "Approved"], ["rejected", "Rejected"]].map(([v, l]) => `<button data-act="art-filter" data-v="${v}" aria-pressed="${f === v}">${l}</button>`).join("");
+  const sel = S.ui.selArt ? S.data.queue.find((a) => a._id === S.ui.selArt) : null;
+  return pageHead("Approvals", "Nothing leaves the console without your approval, and there is no send button: approved material is copied and used by hand.") + `
+  <div class="seg" role="group" aria-label="Status">${seg}</div>
+  <div class="panel table-wrap">${list.length ? `<table><thead><tr><th>Draft</th><th>For</th><th>Checks</th><th>When</th></tr></thead><tbody>${list.map((a) => `
+    <tr class="click ${S.ui.selArt === a._id ? "sel" : ""}" data-act="open-art" data-id="${h(a._id)}"><td>${h(a.title)}<div class="small muted">${h(a.artifactType.replace("_", " "))}</div></td>
+    <td>${chip(a.audience)}</td><td>${a.gateReport?.passed ? chip("passed", "ok") : chip("blocked", "bad")}</td><td class="small muted">${h(fmtDateTime(a.created_at))}</td></tr>`).join("")}</tbody></table>`
+    : `<p class="empty panel-pad">${f === "waiting" ? "Nothing waiting. Run an agent to produce a draft." : "None yet."}</p>`}</div>
+  ${sel ? artDetail(sel) : ""}`;
+}
+
+function artDetail(a) {
+  const d = S.data.decisions[a._id];
+  const g = a.gateReport ?? { blocking: [], warnings: [], verified: [] };
+  const blocker = approvalBlocker(a);
+  const finding = (f) => `<div class="finding ${f.severity}"><span class="rule">${h(f.rule)}${f.lang ? ` · ${h(f.lang)}` : ""}</span><q>${h(f.quote)}</q><span class="small muted">${h(f.why)}</span></div>`;
+  const removed = a.content?.removed ?? [];
+  const forAsil = a.content?.for_asil_to_check ?? [];
+  return `<section class="panel panel-pad stack" id="art-detail">
+    <div class="row between"><div><h3>${h(a.title)}</h3><div class="small muted">${h(a.artifactType.replace("_", " "))} · ${h(fmtDateTime(a.created_at))}</div></div><button class="btn small" data-act="close-art">Close</button></div>
+    <div class="row">${chip(`for ${a.audience}`)}${g.passed ? chip("checks passed", "ok") : chip("checks blocked", "bad")}${chip(`${(g.verified ?? []).length} figures verified`)}${d ? chip(d.status, d.status === "approved" ? "ok" : "bad") : chip("waiting", "warn")}</div>
+    ${a.note ? `<p class="small" style="margin:0">${h(a.note)}</p>` : ""}
+    <div class="grid ${a.renderedAr ? "cols-2" : ""}">
+      ${a.renderedEn ? `<div class="panel panel-pad">${renderDoc(a.renderedEn)}<div style="margin-top:10px"><button class="btn small" data-act="copy" data-lang="en" data-id="${h(a._id)}">Copy English</button></div></div>` : ""}
+      ${a.renderedAr ? `<div class="panel panel-pad"><div class="doc ar" dir="rtl" lang="ar">${h(a.renderedAr).split("\n").map((l) => l.trim() ? `<p>${l}</p>` : "").join("")}</div><p class="small muted">Arabic needs your review before first use.</p><div><button class="btn small" data-act="copy" data-lang="ar" data-id="${h(a._id)}">Copy Arabic</button></div></div>` : ""}
+    </div>
+    ${forAsil.length ? `<div class="stack"><div class="h2">For you to check</div>${forAsil.map((x) => `<div class="finding signal">${h(x)}</div>`).join("")}</div>` : ""}
+    ${removed.length ? `<div class="stack"><div class="h2">Sentences the checks removed</div>${removed.map((r) => `<div class="finding fail"><span class="rule">${h(r.reasons.join(", "))} · ${h(r.lang)}</span><q>${h(r.sentence)}</q></div>`).join("")}</div>` : ""}
+    ${g.blocking.length ? `<div class="stack"><div class="h2">Blocking</div>${g.blocking.map(finding).join("")}</div>` : ""}
+    ${g.warnings.length ? `<details ${S.ui.open.warn ? "open" : ""} data-key="warn"><summary>Warnings (${g.warnings.length})</summary><div class="stack" style="margin-top:8px">${g.warnings.map(finding).join("")}</div></details>` : ""}
+    <details ${S.ui.open.prov ? "open" : ""} data-key="prov"><summary>How it was made</summary><dl class="kv small" style="margin-top:8px"><dt>Prompts</dt><dd class="mono">${h((a.provenance?.prompt_versions ?? []).join(", ") || "code only")}</dd><dt>Answered by</dt><dd>${h((a.provenance?.models_served ?? []).join(", ") || "code only")}</dd><dt>Rules</dt><dd class="mono">${h(a.provenance?.rules_version ?? "")}</dd><dt>Evidence</dt><dd class="mono">${h((a.provenance?.evidence_ids ?? []).join(", "))}</dd></dl></details>
+    ${d ? `<p class="small">${h(d.status === "approved" ? "Approved" : "Rejected")} ${h(fmtDateTime(d.at))}${d.reason ? `: ${h(d.reason)}` : ""}.</p>` : S.me.isOwner ? `
+      <form data-form="decide-art" data-id="${h(a._id)}" class="stack">
+        ${blocker ? `<div class="banner warn">${h(blocker)}</div>` : ""}
+        <label class="f">Reason <span class="hint">needed to reject</span><input type="text" id="art-reason" name="reason" value="${h(dv("decide-art", "reason"))}"></label>
+        <div class="row"><button class="btn primary" name="act" value="approved" ${blocker ? "disabled" : ""}>Approve</button><button class="btn danger" name="act" value="rejected">Reject</button><span class="form-error" id="decide-art-error"></span></div>
+      </form>` : `<p class="small muted">Only Asil approves.</p>`}
+  </section>`;
+}
+
+// ------------------------------------------------------------------ Proof
+function viewProof() {
+  const proof = proofState();
+  const all = [...S.data.evidence_drafts.map((d) => ({ ...d, status: "draft", _draft: true })), ...S.data.evidence];
+  const projects = [...new Set(all.map((e) => e.project_ref).filter(Boolean))].sort();
+  const pf = S.ui.evProject;
+  const list = all.filter((e) => pf === "all" ? true : pf === "company" ? !e.project_ref : e.project_ref === pf)
+    .sort((a, b) => Number(Boolean(b._draft)) - Number(Boolean(a._draft)) || (a.project_ref ?? "").localeCompare(b.project_ref ?? "") || a.type.localeCompare(b.type));
+  const drafts = S.data.evidence_drafts.length;
+  const yes = (v) => v ? chip("yes", "ok") : chip("missing", "bad");
+  return pageHead("Proof", `The proof test asks for Qottuf's own documents for ${proof.required} projects by ${h(fmtDate(proof.due))}: contract value, start and completion dates, the contract and the completion certificate.`,
+    canWrite() ? `<button class="btn primary" data-act="add-evidence">File evidence</button>` : "") + `
+  ${drafts && S.me.isOwner ? `<div class="banner">${drafts} filed record${drafts === 1 ? " is" : "s are"} waiting for your approval (gate S-G5). Agents can't use ${drafts === 1 ? "it" : "them"} until you approve.</div>` : ""}
+  ${S.ui.addEvidence ? evidenceForm(projects) : ""}
+  <section><h2>Projects</h2><div class="panel table-wrap"><table><thead><tr><th>Project</th><th>Contract value</th><th>Dates</th><th>Contract</th><th>Completion certificate</th><th>Referee consent</th><th>Proof test</th></tr></thead><tbody>
+    ${proof.proofs.map((p) => `<tr><td class="mono">${h(p.projectRef)}</td><td class="num">${p.contractValueSar != null ? "SAR " + h(p.contractValueSar.toLocaleString("en-US")) : chip("missing", "bad")}</td><td>${p.startDate && p.completionDate ? h(`${p.startDate} to ${p.completionDate}`) : chip("missing", "bad")}</td><td>${yes(p.hasContract)}</td><td>${yes(p.hasCompletionCertificate)}</td><td>${yes(p.hasRefereeConsent)}</td><td>${p.documented ? chip("documented", "ok") : chip("not yet", "warn")}</td></tr>`).join("") || `<tr><td colspan="7" class="empty">No approved project evidence yet.</td></tr>`}
+  </tbody></table></div></section>
+  <section><h2>Evidence on file</h2>
+    <div class="row" style="margin-bottom:10px"><label class="f" style="min-width:220px">Show<select id="ev-filter" data-act="ev-project">${[["all", "Everything"], ["company", "Company records"], ...projects.map((p) => [p, p])].map(([v, l]) => `<option value="${h(v)}" ${pf === v ? "selected" : ""}>${h(l)}</option>`).join("")}</select></label></div>
+    <div class="stack">${list.map(evidenceCard).join("") || `<p class="empty">No evidence filed.</p>`}</div>
+  </section>`;
+}
+
+function evidenceCard(e) {
+  const expired = e.expires_at && e.expires_at < today();
+  const tenderNaming = e.type === "client_naming_approval";
+  return `<div class="panel panel-pad stack">
+    <div class="row between"><div><strong>${h(e.title)}</strong><div class="small muted"><span class="mono">${h(e._id)}</span>${e.project_ref ? ` · ${h(e.project_ref)}` : ""} · ${h(e.type.replace(/_/g, " "))}${e.source ? ` · ${h(e.source)}` : ""}</div></div>
+      <div class="row">${chip(e.tier)}${chip(e.status, e.status === "approved" ? "ok" : e.status === "withdrawn" ? "bad" : "warn")}${e.expires_at ? chip(expired ? "expired" : `expires ${fmtDate(e.expires_at)}`, expired ? "bad" : daysTo(e.expires_at) <= 60 ? "warn" : "") : ""}</div></div>
+    ${e.facts?.length ? `<div class="small">${e.facts.map((f) => `<div>${h(f.label)}${f.kind !== "statement" ? `: <span class="num">${h(typeof f.value === "number" ? f.value.toLocaleString("en-US") : f.value)}</span>${f.unit ? " " + h(f.unit) : ""}` : ""}</div>`).join("")}</div>` : ""}
+    ${tenderNaming ? `<div class="small muted">Client may be named: ${h((e.permitted_uses ?? []).map((u) => u.replace("name_client:", "")).join(", ") || "nowhere")}.</div>` : ""}
+    ${e._draft ? `<div class="row">${S.me.isOwner ? `<button class="btn small primary" data-act="ev-approve" data-id="${h(e._id)}">Approve (S-G5)</button>` : `<span class="small muted">Waiting for Asil's approval.</span>`}${canWrite() ? `<button class="btn small danger" data-act="ev-discard" data-id="${h(e._id)}">Discard</button>` : ""}</div>`
+      : S.me.isOwner ? `<div class="row">${e.status !== "withdrawn" ? `<button class="btn small danger" data-act="ev-withdraw" data-id="${h(e._id)}">Withdraw</button>` : ""}${tenderNaming && !(e.permitted_uses ?? []).includes("name_client:tender") && e.status === "approved" ? `<button class="btn small" data-act="ev-tender" data-id="${h(e._id)}">Allow naming in tenders</button>` : ""}</div>` : ""}
+  </div>`;
+}
+
+function evidenceForm(projects) {
+  const F = "ev";
+  const rows = Number(dv(F, "rows", "2"));
+  return `<form class="panel panel-pad" data-form="${F}">
+    <div class="row between"><h3>File evidence</h3><button type="button" class="btn small" data-act="close-evidence">Cancel</button></div>
+    <div class="fields">
+      <label class="f">Type<select id="${F}-type" name="type">${["contract", "completion_certificate", "referee_consent", "reference_letter", "certificate", "case_facts", "company_record", "client_naming_approval"].map((t) => `<option ${dv(F, "type") === t ? "selected" : ""}>${t}</option>`).join("")}</select></label>
+      <label class="f">Tier<select id="${F}-tier" name="tier">${[["tender", "Tender: shared in bids"], ["public", "Public"]].map(([v, l]) => `<option value="${v}" ${dv(F, "tier") === v ? "selected" : ""}>${l}</option>`).join("")}</select></label>
+      <label class="f">Project <span class="hint">PRJ-000, or blank for the company</span><input type="text" id="${F}-project" name="project_ref" list="projects" pattern="PRJ-[0-9]+" value="${h(dv(F, "project_ref"))}"></label>
+      <label class="f">Title<input type="text" id="${F}-title" name="title" required minlength="3" value="${h(dv(F, "title"))}"></label>
+      <label class="f">Issued<input type="date" id="${F}-issued" name="issued_at" value="${h(dv(F, "issued_at"))}"></label>
+      <label class="f">Expires<input type="date" id="${F}-expires" name="expires_at" value="${h(dv(F, "expires_at"))}"></label>
+      <label class="f">Certificate for <span class="hint">e.g. CR, Zakat, GOSI</span><input type="text" id="${F}-cert" name="cert" value="${h(dv(F, "cert"))}"></label>
+    </div>
+    <div class="h2">Facts on the document</div>
+    ${Array.from({ length: rows }, (_, i) => `<div class="fields">
+      <label class="f">Fact<select id="${F}-n${i}" name="n${i}">${["", "contract_value", "start_date", "completion_date", "project_title", "scope", "client_name", "client_descriptor", "floors", "area", "beds", "elevators", "seats"].map((n) => `<option ${dv(F, `n${i}`) === n ? "selected" : ""}>${n}</option>`).join("")}</select></label>
+      <label class="f">Value<input type="text" id="${F}-v${i}" name="v${i}" value="${h(dv(F, `v${i}`))}" placeholder="38000000, 2021-09, or text"></label>
+      <label class="f">Unit<input type="text" id="${F}-u${i}" name="u${i}" value="${h(dv(F, `u${i}`))}" placeholder="sar, sqm, floor, bed"></label></div>`).join("")}
+    <div class="row"><button type="button" class="btn small" data-act="ev-more">Add a fact</button></div>
+    <p class="small muted" style="margin:0">Filed as a draft. Asil approves it before any agent can use it. The document itself stays in Qottuf's files.</p>
+    <div class="row"><button class="btn primary">File as draft</button><span class="form-error" id="${F}-error"></span></div>
+    <datalist id="projects">${projects.map((p) => `<option value="${h(p)}">`).join("")}</datalist>
+  </form>`;
+}
+
+// ------------------------------------------------------------------ Lifts
+function viewLifts() {
+  const units = S.data.units;
+  // Lifts entered from a project record carry unverified: true until someone confirms their details; their unknowns
+  // are listed as "to confirm", not as facts (an unknown maintenance status is not "never offered").
+  const known = units.filter((u) => !u.unverified);
+  const toConfirm = units.length - known.length;
+  const due = Q.dueItems(known, today(), S.rules.maintenance.renewal_window_days);
+  const gaps = Q.registryGaps(known, S.data.opps);
+  const cands = Q.renewalCandidates(known, S.data.opps, today(), S.rules.maintenance.renewal_window_days);
+  const sel = S.ui.selUnit ? units.find((u) => u._id === S.ui.selUnit) : null;
+  const gapCounts = {};
+  for (const g of gaps) gapCounts[g.kind] = (gapCounts[g.kind] ?? 0) + 1;
+  const GAP = { won_without_unit: "sold but not registered", no_maintenance_offer: "maintenance never offered", no_origin_document: "no certificate of origin", no_owner_consent: "no owner agreement to contact", no_inspection_date: "no inspection date" };
+  return pageHead("Lifts", "Every lift Qottuf installed or maintains, with the dates that give a reason to call: warranty end, contract end, the annual inspection and registration.",
+    canWrite() ? `<div class="row"><button class="btn" data-act="add-unit">Register a lift</button><button class="btn primary" data-act="renewals" ${cands.length ? "" : "disabled"}>Create ${cands.length} renewal opportunit${cands.length === 1 ? "y" : "ies"}</button></div>` : "") + `
+  ${S.ui.addUnit ? unitForm() : ""}
+  <div class="grid cols-2">
+    <section><h2>Due in the next ${S.rules.maintenance.renewal_window_days} days</h2><div class="panel panel-pad stack small">${due.map((d) => `<div class="row between"><span>${h(d.kind.replace("_", " "))}: ${h(d.site)}${d.contactable ? "" : ` <span class="muted">(owner not yet agreed)</span>`}</span>${chip(d.overdue ? "overdue" : `${d.days} days`, d.overdue || d.days <= 30 ? "bad" : "warn")}</div>`).join("") || `<p class="empty">Nothing due.</p>`}</div></section>
+    <section><h2>Gaps to close</h2><div class="panel panel-pad stack small">${toConfirm ? `<div class="row between"><span>lifts from project records whose details aren't confirmed yet</span>${chip(String(toConfirm), "warn")}</div>` : ""}${Object.entries(gapCounts).map(([k, n]) => `<div class="row between"><span>${h(GAP[k])}</span>${chip(String(n), "warn")}</div>`).join("") || (toConfirm ? "" : `<p class="empty">No gaps.</p>`)}</div></section>
+  </div>
+  <div class="panel table-wrap">${units.length ? `<table><thead><tr><th>Lift</th><th>Source</th><th>Warranty ends</th><th>Contract</th><th>Next inspection</th><th>Owner agreed</th></tr></thead><tbody>${units.map((u) => `
+    <tr class="click ${S.ui.selUnit === u._id ? "sel" : ""}" data-act="open-unit" data-id="${h(u._id)}"><td>${h(u.site)}<div class="small muted mono">${h(u._id)}</div></td><td>${h(u.source)}</td>
+    <td>${u.warranty_ends_at ? h(fmtDate(u.warranty_ends_at)) : chip("unknown")}</td><td>${u.maintenance_contract ? h(`to ${fmtDate(u.maintenance_contract.ends_at)}`) : u.unverified ? chip("to confirm", "warn") : chip(u.maintenance_offer.replace("_", " "), u.maintenance_offer === "accepted" ? "ok" : "warn")}</td>
+    <td>${u.next_inspection_due ? h(fmtDate(u.next_inspection_due)) : chip("unknown")}</td><td>${u.owner_consent_at ? chip("yes", "ok") : chip("no", "bad")}</td></tr>`).join("")}</tbody></table>` : `<p class="empty panel-pad">No lifts registered. Register the lifts Qottuf installed, with each owner's agreement.</p>`}</div>
+  ${sel ? unitDetail(sel) : ""}`;
+}
+
+function unitForm() {
+  const F = "unit";
+  return `<form class="panel panel-pad" data-form="${F}"><div class="row between"><h3>Register a lift</h3><button type="button" class="btn small" data-act="close-unit-form">Cancel</button></div>
+    <div class="fields"><label class="f">Site<input type="text" id="${F}-site" name="site" required minlength="3" value="${h(dv(F, "site"))}"></label>
+    <label class="f">Source<select id="${F}-source" name="source">${["installed", "maintained", "takeover"].map((s) => `<option>${s}</option>`).join("")}</select></label>
+    <label class="f">Handed over<input type="date" id="${F}-ho" name="handed_over_at" value="${h(dv(F, "handed_over_at"))}"></label>
+    <label class="f">Warranty ends<input type="date" id="${F}-we" name="warranty_ends_at" value="${h(dv(F, "warranty_ends_at"))}"></label>
+    <label class="f">Next inspection<input type="date" id="${F}-ni" name="next_inspection_due" value="${h(dv(F, "next_inspection_due"))}"></label>
+    <label class="f">Certificate of origin <span class="hint">reference</span><input type="text" id="${F}-coo" name="origin_document" value="${h(dv(F, "origin_document"))}"></label></div>
+    <div class="row"><button class="btn primary">Register</button><span class="form-error" id="${F}-error"></span></div></form>`;
+}
+
+function unitDetail(u) {
+  const F = "unitact";
+  return `<section class="panel panel-pad stack"><div class="row between"><h3>${h(u.site)}</h3><button class="btn small" data-act="close-unit">Close</button></div>
+    ${u.unverified ? `<div class="banner warn">Entered from the project record${u.project_ref ? ` (${h(u.project_ref)})` : ""}: only the lift's existence is on record. Confirm the dates, the maintenance status and the owner's agreement from the handover file; saving marks the lift as confirmed.</div>` : ""}
+    <dl class="kv"><dt>Handed over</dt><dd>${h(u.handed_over_at ? fmtDate(u.handed_over_at) : "unknown")}</dd><dt>Certificate of origin</dt><dd>${h(u.origin_document ?? "not on file")}</dd><dt>Registration due</dt><dd>${h(u.next_registration_due ? fmtDate(u.next_registration_due) : "unknown")}</dd><dt>Maintenance</dt><dd>${u.maintenance_contract ? h(`${u.maintenance_contract.tier}, ${u.maintenance_contract.contract_ref}, to ${fmtDate(u.maintenance_contract.ends_at)}`) : u.unverified ? "to confirm" : h(u.maintenance_offer.replace("_", " "))}</dd><dt>Manufacturer</dt><dd>${h(u.manufacturer ?? "not recorded")}</dd></dl>
+    ${canWrite() ? `<form data-form="${F}" data-id="${h(u._id)}" class="stack"><div class="fields">
+      <label class="f">Handed over on<input type="date" id="${F}-ho" name="handed_over_at" value="${h(dv(F, "handed_over_at", u.handed_over_at ?? ""))}"></label>
+      <label class="f">Warranty ends<input type="date" id="${F}-we" name="warranty_ends_at" value="${h(dv(F, "warranty_ends_at", u.warranty_ends_at ?? ""))}"></label>
+      <label class="f">Next inspection due<input type="date" id="${F}-ni" name="next_inspection_due" value="${h(dv(F, "next_inspection_due", u.next_inspection_due ?? ""))}"></label>
+      <label class="f">Manufacturer<input type="text" id="${F}-mf" name="manufacturer" value="${h(dv(F, "manufacturer", u.manufacturer ?? ""))}"></label>
+      <label class="f">Certificate of origin <span class="hint">reference</span><input type="text" id="${F}-coo" name="origin_document" value="${h(dv(F, "origin_document", u.origin_document ?? ""))}"></label>
+      <label class="f">Owner agreed to be contacted on<input type="date" id="${F}-consent" name="owner_consent_at" value="${h(dv(F, "owner_consent_at", u.owner_consent_at ?? ""))}"></label>
+      <label class="f">Maintenance offer<select id="${F}-offer" name="maintenance_offer">${["not_offered", "offered", "accepted", "declined"].map((s) => `<option ${dv(F, "maintenance_offer", u.maintenance_offer) === s ? "selected" : ""}>${s}</option>`).join("")}</select></label>
+      <label class="f">Inspection done on<input type="date" id="${F}-insp" name="inspection_done" value="${h(dv(F, "inspection_done"))}"></label>
+      <label class="f">Registration renewed on<input type="date" id="${F}-reg" name="registration_done" value="${h(dv(F, "registration_done"))}"></label>
+      <label class="f">Contract reference <span class="hint">if signed</span><input type="text" id="${F}-cref" name="contract_ref" value="${h(dv(F, "contract_ref", u.maintenance_contract?.contract_ref ?? ""))}"></label>
+      <label class="f">Contract ends<input type="date" id="${F}-ce" name="contract_ends" value="${h(dv(F, "contract_ends", u.maintenance_contract?.ends_at ?? ""))}"></label></div>
+      <div class="row"><button class="btn primary">Save</button><span class="form-error" id="${F}-error"></span></div></form>` : ""}
+  </section>`;
+}
+
+// ------------------------------------------------------------------ Footprint
+const PLATFORM = { website: "Website", google_business_profile: "Google Business Profile", linkedin_company_page: "LinkedIn company page", etimad_supplier_record: "Etimad supplier record" };
+const ENTITY_LABEL = { legal_name_en: "Legal name", legal_name_ar: "Legal name (Arabic)", trading_name_en: "Name", trading_name_ar: "Name (Arabic)", cr_number: "CR number",
+  vat_number: "VAT number", phone_main: "Main phone", email_main: "Main email", website: "Website", address_en: "Address", address_ar: "Address (Arabic)", po_box: "P.O. Box", founded_year: "Founded" };
+
+function entityForm(ent) {
+  const F = "entity";
+  const f = ent?.fields ?? {};
+  return `<form data-form="${F}" class="stack">
+    <div class="fields">${Object.entries(ENTITY_LABEL).map(([k, l]) => `<label class="f">${h(l)}<input type="${k === "founded_year" ? "number" : "text"}" id="${F}-${k}" name="${k}" ${/_ar$/.test(k) ? 'dir="rtl" lang="ar" class="ar"' : ""} value="${h(dv(F, k, f[k] ?? ""))}"></label>`).join("")}</div>
+    <label class="f">Questions still open <span class="hint">one per line; delete a line once it's settled</span><textarea id="${F}-questions" name="questions">${h(dv(F, "questions", (ent?.questions ?? []).join("\n")))}</textarea></label>
+    <p class="small muted" style="margin:0">Saving keeps the record proposed. Approve it once every question is settled.</p>
+    <div class="row"><button class="btn primary">Save</button><span class="form-error" id="${F}-error"></span></div>
+  </form>`;
+}
+
+function viewFootprint() {
+  const ent = S.data.entity;
+  const site = S.data.checks.site, mail = S.data.checks.mail;
+  const listings = S.data.listings;
+  const fields = ent?.fields ?? {};
+  const report = (l) => { const last = l.observations?.[l.observations.length - 1]; return last && ent ? Q.compareToEntity(fields, last.observed, S.brand) : []; };
+  // The website's failures grouped by rule, with what was found where, so the list reads as work to do.
+  const byRule = new Map();
+  const addFail = (rule, quote, page, why) => {
+    const g = byRule.get(rule) ?? { rule, n: 0, quotes: new Map(), why: "" };
+    g.n++;
+    if (!g.why && why) g.why = why;
+    const q = String(quote ?? "").trim();
+    if (q) g.quotes.set(q, [...new Set([...(g.quotes.get(q) ?? []), page])]);
+    byRule.set(rule, g);
+  };
+  for (const p of site?.pages ?? []) {
+    for (const f of (p.findings ?? []).filter((x) => x.severity === "fail")) addFail(f.check, f.detail, p.url, "");
+    for (const f of p.text_failures ?? []) addFail(f.rule, f.quote, p.url, f.why);
+  }
+  return pageHead("Footprint", "One master company record, and every public listing checked against it, so a reviewer finds the same facts everywhere.") + `
+  <section><h2>Master company record</h2><div class="panel panel-pad stack">
+    <div class="row between"><h3>${ent?.status === "approved" ? `Approved ${h(fmtDate(ent.approved_at))}` : "Proposed: awaiting your approval"}</h3><div class="row">${ent ? chip(ent.status, ent.status === "approved" ? "ok" : "warn") : chip("none")}${S.me.isOwner ? `<button class="btn small" data-act="entity-edit">${S.ui.editEntity ? "Close the editor" : "Edit"}</button>` : ""}</div></div>
+    ${S.ui.editEntity && S.me.isOwner ? entityForm(ent) : ent ? `<dl class="kv">${Object.entries(ENTITY_LABEL).filter(([k]) => fields[k] != null && fields[k] !== "").map(([k, l]) => `<dt>${h(l)}</dt><dd class="${/_ar$/.test(k) ? "ar" : ""}">${h(fields[k])}</dd>`).join("")}</dl>
+      ${Object.keys(ENTITY_LABEL).filter((k) => !fields[k] && !["address_ar", "vat_number"].includes(k)).length ? `<p class="small muted" style="margin:0">Not filled in: ${h(Object.keys(ENTITY_LABEL).filter((k) => !fields[k] && !["address_ar", "vat_number"].includes(k)).map((k) => ENTITY_LABEL[k]).join(", "))}.</p>` : ""}` : `<p class="empty">No master record yet.</p>`}
+    ${ent?.questions?.length && !S.ui.editEntity ? `<div class="stack"><div class="h2">Questions to settle first</div>${ent.questions.map((q) => `<div class="finding signal"><span>${bidi(q)}</span></div>`).join("")}</div>` : ""}
+    ${S.me.isOwner && ent && ent.status !== "approved" && !S.ui.editEntity ? `<div class="row"><button class="btn primary" data-act="entity-approve">Approve as the master record</button><span class="form-error" id="entity-error"></span></div>` : ""}
+  </div></section>
+  <div class="grid cols-2">
+    <section><h2>Website</h2><div class="panel panel-pad stack small">
+      ${site ? `<div class="row between"><strong>${Object.values(site.verdict.bar).filter(Boolean).length} of 4 requirements met</strong><span class="muted">checked ${h(fmtDate(site.checked_at))}</span></div>
+        ${[["nothing_false", "Nothing false"], ["working_contacts", "Working contacts"], ["both_languages", "Both languages"], ["enquiry_form_with_consent", "Enquiry form with consent wording"]].map(([k, l]) => `<div class="row">${chip(site.verdict.bar[k] ? "met" : "not met", site.verdict.bar[k] ? "ok" : "bad")}<span>${l}</span></div>`).join("")}
+        <div class="h2" style="margin-top:6px">${site.verdict.fails} failures, by kind</div>
+        ${[...byRule.values()].sort((a, b) => b.n - a.n).map((g) => `<div class="finding fail"><div class="row between"><span class="rule">${h(g.rule)}</span><span class="num">${g.n}</span></div>
+          ${[...g.quotes].slice(0, 4).map(([q, pages]) => `<div><q>${h(q)}</q> <span class="small muted">${h(pages.join(", "))}</span></div>`).join("")}${g.quotes.size > 4 ? `<span class="small muted">and ${g.quotes.size - 4} more</span>` : ""}
+          ${g.why ? `<span class="small muted">${h(g.why)}</span>` : ""}</div>`).join("")}
+        <p class="muted" style="margin:0">${h(site.source ?? "")}</p>` : `<p class="empty">Not checked yet.</p>`}
+    </div></section>
+    <section><h2>Quote inbox</h2><div class="panel panel-pad stack small">
+      ${mail ? `<div class="row between"><strong>@${h(mail.report.domain)}</strong>${chip(mail.report.verdict.replace("_", " "), mail.report.verdict === "protected" ? "ok" : "bad")}</div><p style="margin:0">${h(mail.report.summary)}</p>
+        <dl class="kv"><dt>MX</dt><dd class="mono">${h(mail.report.mx.hosts.join(", ") || "none")}</dd><dt>SPF</dt><dd class="mono">${h(mail.report.spf.record ?? "none")}</dd><dt>DKIM</dt><dd>${h(mail.report.dkim.found.join(", ") || "not found")}</dd><dt>DMARC</dt><dd class="mono">${h(mail.report.dmarc.record ?? "none")}</dd></dl>
+        ${[...mail.report.spf.issues, ...mail.report.dmarc.issues].map((i) => `<div class="finding fail">${h(i)}</div>`).join("")}
+        ${mail.fix ? `<div class="h2">The fix, for whoever manages the domain</div>${mail.fix_note ? `<p style="margin:0">${h(mail.fix_note)}</p>` : ""}${mail.fix.map((x) => `<div class="row between" style="flex-wrap:nowrap"><span class="mono" style="overflow-wrap:anywhere;min-width:0">${h(x)}</span><button class="btn small" data-act="copy-text" data-text="${h(x)}">Copy</button></div>`).join("")}` : ""}
+        <p class="muted" style="margin:0">Checked ${h(fmtDate(mail.checked_at))}. Re-run with <span class="mono">npm run check -- mail ${h(mail.report.domain)}</span>.</p>` : `<p class="empty">Not checked yet.</p>`}
+    </div></section>
+  </div>
+  <section><h2>Listings</h2><div class="panel table-wrap">${listings.length ? `<table><thead><tr><th>Where</th><th>Last checked</th><th>Against the master record</th></tr></thead><tbody>${listings.map((l) => { const r = report(l); const bad = r.filter((x) => x.severity === "fail"); const last = l.observations?.[l.observations.length - 1];
+      return `<tr><td>${h(PLATFORM[l.platform] ?? l.platform.replace(/_/g, " ").replace(/^./, (c) => c.toUpperCase()))}<div class="small muted">${h(l.url ?? "")}</div></td><td class="small">${last ? h(fmtDate(last.at)) : chip("never", "warn")}</td><td class="small">${!last ? `<span class="muted">Not checked yet: compare it with the master record.</span>` : bad.length ? bad.map((b) => `<div style="color:var(--bad)">${h(b.why)}</div>`).join("") + `<div class="muted">Seen there: ${bidi([...new Set(bad.map((b) => b.observed))].join("; "))}</div>` : chip("matches", "ok")}</td></tr>`; }).join("")}</tbody></table>` : `<p class="empty panel-pad">No listings yet.</p>`}</div></section>
+  <section><h2>Check a page's HTML</h2><form class="panel panel-pad" data-form="sitecheck">
+    <label class="f">Paste the page source <span class="hint">checked here, in your browser, against the same rules</span><textarea class="tall mono" id="site-html" name="html">${h(dv("sitecheck", "html"))}</textarea></label>
+    <div class="row"><button class="btn primary">Check</button></div>
+    ${S.ui.siteResult ? siteResultHtml(S.ui.siteResult) : ""}</form></section>`;
+}
+
+function siteResultHtml(a) {
+  const fails = [...a.findings.filter((f) => f.severity === "fail").map((f) => ({ rule: f.check, quote: f.detail, why: "" })), ...a.textFindings.filter((f) => f.severity === "fail")];
+  return `<div class="stack"><div class="row">${chip(`${fails.length} failures`, fails.length ? "bad" : "ok")}${chip(`lang ${a.lang ?? "missing"}`)}${chip(`${a.forms.count} forms`)}</div>
+    ${fails.map((f) => `<div class="finding fail"><span class="rule">${h(f.rule)}</span><q>${h(f.quote)}</q>${f.why ? `<span class="small muted">${h(f.why)}</span>` : ""}</div>`).join("")}</div>`;
+}
+
+// ------------------------------------------------------------------ Check text
+function viewCheck() {
+  const r = S.ui.checkResult;
+  const F = "check";
+  return pageHead("Check text", "Paste any copy, in English, Arabic or both, and check it the way the agents' drafts are checked. Runs in your browser; Claude isn't used.") + `
+  <form class="panel panel-pad" data-form="${F}">
+    <div class="grid cols-2"><label class="f">English<textarea class="tall" id="${F}-en" name="en">${h(dv(F, "en"))}</textarea></label>
+      <label class="f">Arabic<textarea class="tall ar" id="${F}-ar" name="ar" dir="rtl" lang="ar">${h(dv(F, "ar"))}</textarea></label></div>
+    <div class="row"><label class="f" style="min-width:220px">For<select id="${F}-aud" name="audience">${[["public", "Public"], ["client", "A client or tender"], ["internal", "Internal"]].map(([v, l]) => `<option value="${v}" ${dv(F, "audience", "public") === v ? "selected" : ""}>${l}</option>`).join("")}</select></label>
+      <button class="btn primary" style="align-self:end">Check</button></div>
+  </form>
+  ${r ? `<section class="stack"><div class="row">${chip(r.passed ? "passes" : `${r.blocking.length} blocking`, r.passed ? "ok" : "bad")}${chip(`${r.warnings.length} warnings`)}${chip(`${r.verified.length} figures verified`)}</div>
+    ${r.blocking.map((f) => `<div class="finding fail"><span class="rule">${h(f.rule)} · ${h(f.lang)}</span><q>${h(f.quote)}</q><span class="small muted">${h(f.why)}${f.fix ? ` Fix: ${h(f.fix)}` : ""}</span></div>`).join("")}
+    ${r.warnings.map((f) => `<div class="finding signal"><span class="rule">${h(f.rule)} · ${h(f.lang)}</span><q>${h(f.quote)}</q><span class="small muted">${h(f.why)}</span></div>`).join("")}
+    ${r.verified.length ? `<details><summary>Verified figures (${r.verified.length})</summary><div class="stack small" style="margin-top:8px">${r.verified.map((v) => `<div><span class="num">${h(v.raw)}</span>: ${h(v.label)} <span class="mono muted">${h(v.sourceId)}</span></div>`).join("")}</div></details>` : ""}
+  </section>` : ""}`;
+}
+
+const VIEW_HTML = { board: viewBoard, pipeline: viewPipeline, agents: viewAgents, approvals: viewApprovals, proof: viewProof, lifts: viewLifts, footprint: viewFootprint, check: viewCheck };
+
+// ------------------------------------------------------------------ events
+document.addEventListener("input", (e) => {
+  const form = e.target.closest("form[data-form]");
+  if (!form || !e.target.name || e.target.type === "checkbox") return;
+  (S.drafts[formKey(form)] ??= {})[e.target.name] = e.target.value;
+});
+document.addEventListener("change", (e) => {
+  const t = e.target;
+  if (t.matches("[data-act=show-closed]")) { S.ui.showClosed = t.checked; render(); return; }
+  if (t.matches("[data-act=ev-project]")) { S.ui.evProject = t.value; render(); return; }
+  const form = t.closest("form[data-form]");
+  if (form && t.name) {
+    const d = (S.drafts[formKey(form)] ??= {});
+    if (t.type === "checkbox") d[`line:${t.value}`] = t.checked;
+    else d[t.name] = t.value;
+    if (t.hasAttribute("data-redraw")) render();
+  }
+});
+document.addEventListener("toggle", (e) => { const d = e.target; if (d.matches?.("details[data-key]")) S.ui.open[d.dataset.key] = d.open; }, true);
+
+function formKey(form) {
+  return { "agent-brief": "brief", "agent-debrief": "debrief", "agent-case": "case", "agent-bilingual": "bi" }[form.dataset.form] ?? form.dataset.form;
+}
+
+document.addEventListener("click", async (e) => {
+  const t = e.target.closest("[data-act]");
+  if (!t || t.tagName === "INPUT" || t.tagName === "SELECT") return;
+  const act = t.dataset.act, id = t.dataset.id;
+  switch (act) {
+    case "go": location.hash = t.dataset.view; break;
+    case "pipe-filter": S.ui.pipeFilter = t.dataset.v; render(); break;
+    case "new-opp": S.ui.newOpp = true; render(); break;
+    case "new-account": S.ui.newAccount = true; render(); break;
+    case "close-account": S.ui.newAccount = false; render(); break;
+    case "close-new-opp": S.ui.newOpp = false; render(); break;
+    case "open-opp": if (S.ui.selOpp !== id) { S.drafts.move = {}; S.drafts.decide = {}; S.drafts.nextstep = {}; } S.ui.selOpp = id; if (S.view !== "pipeline") location.hash = "pipeline"; else render(); setTimeout(() => document.getElementById("opp-detail")?.scrollIntoView({ block: "start" }), 0); break;
+    case "close-opp": S.ui.selOpp = null; render(); break;
+    case "decide-pick": (S.drafts.decide ??= {}).decision = t.dataset.v; render(); break;
+    case "screen": {
+      const o = byId(S.data.opps, id);
+      try { const next = Q.screenOpportunity(o, { now: new Date(), by: S.me.id, rules: S.rules, evidence: S.data.evidence.map(toRecord) }); if (await put("opps", next.id, next)) toast(`Screened: knock-outs ${next.screening.overall}. The 48-hour decision clock has started.`); }
+      catch (err) { toast(errorCopy(err)); }
+      break;
+    }
+    case "pick-agent": S.ui.agent = t.dataset.v; render(); break;
+    case "stop-run": S.run?.ctl?.abort(); break;
+    case "art-filter": S.ui.artFilter = t.dataset.v; render(); break;
+    case "open-art": S.ui.selArt = id; if (S.view !== "approvals") { S.ui.artFilter = S.data.decisions[id] ? S.data.decisions[id].status : "waiting"; location.hash = "approvals"; } else render(); setTimeout(() => document.getElementById("art-detail")?.scrollIntoView({ block: "start" }), 0); break;
+    case "close-art": S.ui.selArt = null; render(); break;
+    case "copy": {
+      const a = S.data.queue.find((x) => x._id === id);
+      copy(t.dataset.lang === "ar" ? a?.renderedAr : a?.renderedEn, t.closest(".panel")?.querySelector(".doc"));
+      break;
+    }
+    case "copy-text": copy(t.dataset.text, t.previousElementSibling); break;
+    case "add-evidence": S.ui.addEvidence = true; render(); break;
+    case "close-evidence": S.ui.addEvidence = false; render(); break;
+    case "ev-more": (S.drafts.ev ??= {}).rows = String(Number(dv("ev", "rows", "2")) + 1); render(); break;
+    case "ev-approve": {
+      const d = S.data.evidence_drafts.find((x) => x._id === id);
+      if (!d) break;
+      const { _id, ...body } = d;
+      if (await put("evidence", id, { ...body, status: "approved", approved_by: S.me.id, approved_at: new Date().toISOString() })) {
+        try { await S.db.collection("evidence_drafts").doc(id).delete(); } catch {}
+        toast("Approved. Agents can use it now.");
+      }
+      break;
+    }
+    case "ev-discard": try { await S.db.collection("evidence_drafts").doc(id).delete(); toast("Discarded."); } catch (err) { toast(`Not discarded. ${errorCopy(err)}`); } break;
+    case "ev-withdraw": if (await patch("evidence", id, { status: "withdrawn", withdrawn_by: S.me.id, withdrawn_at: new Date().toISOString() })) toast("Withdrawn. No agent will use it."); break;
+    case "ev-tender": { const ev = S.data.evidence.find((x) => x._id === id); if (await patch("evidence", id, { permitted_uses: [...new Set([...(ev.permitted_uses ?? []), "name_client:tender"])] })) toast("The client may now be named in tenders."); break; }
+    case "add-unit": S.ui.addUnit = true; render(); break;
+    case "close-unit-form": S.ui.addUnit = false; render(); break;
+    case "open-unit": if (S.ui.selUnit !== id) S.drafts.unitact = {}; S.ui.selUnit = id; render(); break;
+    case "close-unit": S.ui.selUnit = null; render(); break;
+    case "renewals": await createRenewals(); break;
+    case "entity-approve": await approveEntity(); break;
+    case "entity-edit": S.ui.editEntity = !S.ui.editEntity; S.drafts.entity = {}; render(); break;
+    case "remove-examples":
+      if (!S.ui.confirmRemove || Date.now() - S.ui.confirmRemove > 6000) {
+        S.ui.confirmRemove = Date.now(); render();
+        setTimeout(() => { S.ui.confirmRemove = 0; schedule(); }, 6000);
+        break;
+      }
+      S.ui.confirmRemove = 0;
+      await removeExamples();
+      break;
+  }
+});
+
+async function copy(text, el) {
+  if (!text) return;
+  try { await navigator.clipboard.writeText(text); toast("Copied."); }
+  catch {
+    // Some app views refuse the clipboard: select the text instead, so one keystroke copies it.
+    if (el) { const sel = window.getSelection(); const r = document.createRange(); r.selectNodeContents(el); sel.removeAllRanges(); sel.addRange(r); }
+    toast(el ? "Selected. Press Ctrl+C (⌘C on a Mac) to copy." : "Copying isn't allowed here: select the text and copy it.");
+  }
+}
+
+document.addEventListener("submit", async (e) => {
+  const form = e.target.closest("form[data-form]");
+  if (!form) return;
+  e.preventDefault();
+  const fd = new FormData(form);
+  const v = (k) => (fd.get(k) ?? "").toString().trim();
+  const name = form.dataset.form;
+  const err = (msg) => { const el = form.querySelector(".form-error"); if (el) el.textContent = msg; else toast(msg); };
+  const now = new Date();
+  try {
+    if (name === "acct") {
+      const rank = v("priority_rank");
+      const acc = Q.AccountInput.parse({ name_en: v("name_en"), ...(v("name_ar") ? { name_ar: v("name_ar") } : {}), type: v("type"),
+        ...(v("sector") ? { sector: v("sector") } : {}), relationship_owner: "asil", ...(rank ? { priority_rank: Number(rank) } : {}) });
+      const id = newId("ACC");
+      if (await put("accounts", id, { ...acc, created_by: S.me.id, created_at: now.toISOString() })) { S.drafts.acct = {}; S.ui.newAccount = false; toast("Account added."); }
+    } else if (name === "newopp") {
+      const motion = v("motion");
+      const lo = v("lo") ? Math.round(Number(v("lo")) * 1e6) : null, hi = v("hi") ? Math.round(Number(v("hi")) * 1e6) : lo;
+      const o = Q.newOpportunity({
+        id: newId("OPP"), motion, title: v("title"), account_id: v("account_id") || null, route: v("route"), qottuf_role: motion === "contracting" ? v("qottuf_role") : "supplier_installer",
+        sector: motion === "contracting" ? v("sector") || null : null, service_lines: fd.getAll("lines").map(String), stage: motion === "contracting" ? v("stage") : "new", owner: "asil",
+        next_step: { action: v("action"), owner: v("owner"), due_at: fromLocal(v("due")) }, value_min_sar: lo, value_max_sar: hi, value_source: lo != null ? "estimate" : "unknown",
+        dates: v("deadline") ? { submission_deadline: fromLocal(v("deadline")) } : {},
+      }, { now, by: S.me.id, rulesVersion: S.rulesVersion });
+      if (await put("opps", o.id, o)) { S.drafts.newopp = {}; S.ui.newOpp = false; S.ui.selOpp = o.id; toast("Added."); }
+    } else if (name === "nextstep") {
+      const o = byId(S.data.opps, form.dataset.id);
+      const next = Q.setNextStep(o, { action: v("action"), owner: v("owner"), due_at: fromLocal(v("due")) }, { now, by: S.me.id });
+      if (await put("opps", next.id, next)) { S.drafts.nextstep = {}; S.ui.open.nextstep = false; toast("Next step saved."); }
+    } else if (name === "move") {
+      const o = byId(S.data.opps, form.dataset.id);
+      const to = v("to");
+      const next = Q.moveOpportunity(o, to, {
+        ...(Q.isOpen(to) ? { nextStep: { action: v("action"), owner: v("owner"), due_at: fromLocal(v("due")) } } : {}),
+        ...(v("reason") ? { reason: v("reason") } : {}),
+        ...(to === "lost" ? { outcome: { primary_reason: v("primary_reason"), ...(v("winner") ? { winner: v("winner") } : {}) } } : {}),
+        ...(to === "won" ? { outcome: { value_sar: Number(v("value_sar")) } } : {}),
+      }, { now, by: S.me.id, rulesVersion: S.rulesVersion });
+      if (await put("opps", next.id, next)) { S.drafts.move = {}; toast(`Moved to ${to.replace("_", " ")}.`); }
+    } else if (name === "decide") {
+      const o = byId(S.data.opps, form.dataset.id);
+      const scores = {};
+      let any = false;
+      for (const f of S.rules.scorecard.factors) { const s = v(`f-${f.id}`); if (s !== "") { any = true; scores[f.id] = { score: Number(s), ...(v(`e-${f.id}`) ? { evidence: [v(`e-${f.id}`)] } : {}) }; } else scores[f.id] = null; }
+      const decision = v("decision");
+      const next = Q.decideBid(o, { decision, reason: v("reason"), ...(v("override") ? { override: v("override") } : {}), ...(any ? { scores } : {}),
+        ...(decision === "go" ? { nextStep: { action: v("action"), owner: v("owner"), due_at: fromLocal(v("due")) } } : {}) }, { now, by: S.me.id, isOwner: S.me.isOwner, rules: S.rules });
+      const d = next.screening.decision;
+      // The owner-only record first: if it can't be written, the opportunity isn't moved either.
+      if (!(await put("decisions", `bid-${next.id}`, { kind: "bid", opportunity_id: next.id, decision: d.decision, reason: d.reason, override: d.override ?? null,
+        score: next.screening.score ?? null, rules_version: S.rulesVersion, by: S.me.id, at: d.at }))) return;
+      if (await put("opps", next.id, next)) { S.drafts.decide = {}; toast(decision === "go" ? "Decision recorded: bid." : "Decision recorded: no-bid."); }
+    } else if (name.startsWith("agent-")) {
+      if (S.sampleState !== "ready") return err("Claude isn't available in this view.");
+      if (name === "agent-brief") await startRun("meeting_brief", { account_id: v("account_id"), ...(v("opportunity_id") ? { opportunity_id: v("opportunity_id") } : {}), meeting_at: v("meeting_at"), purpose: v("purpose"), ...(v("notes") ? { notes: v("notes") } : {}) }, (x) => Q.BriefInput.parse(x));
+      if (name === "agent-debrief") await startRun("meeting_debrief", { account_id: v("account_id"), ...(v("opportunity_id") ? { opportunity_id: v("opportunity_id") } : {}), notes: v("notes") }, (x) => Q.DebriefInput.parse(x));
+      if (name === "agent-case") await startRun("case_study", { project_ref: v("project_ref"), audience: v("audience") }, (x) => Q.CaseStudyInput.parse(x));
+      if (name === "agent-bilingual") await startRun("bilingual", { source_lang: v("source_lang"), source_text: v("source_text"), audience: v("audience"), register: v("register"), purpose: v("purpose") }, (x) => Q.BilingualInput.parse(x));
+    } else if (name === "decide-art") {
+      const status = e.submitter?.value;
+      const a = S.data.queue.find((x) => x._id === form.dataset.id);
+      if (status === "rejected" && !v("reason")) return err("Give a reason for the rejection, so the next draft can be better.");
+      if (status === "approved" && approvalBlocker(a)) return err(approvalBlocker(a));
+      if (await put("decisions", a._id, { status, by: S.me.id, at: now.toISOString(), reason: v("reason") || null })) { S.drafts["decide-art"] = {}; toast(status === "approved" ? "Approved. Copy it and use it by hand." : "Rejected."); }
+    } else if (name === "ev") {
+      const facts = [];
+      for (let i = 0; i < Number(dv("ev", "rows", "2")); i++) {
+        const n = v(`n${i}`), val = v(`v${i}`);
+        if (!n || !val) continue;
+        const isNum = /^-?\d+(\.\d+)?$/.test(val.replace(/,/g, "")), isDate = /^\d{4}-\d{2}(-\d{2})?$/.test(val);
+        facts.push({ id: `${n}${i}`, kind: isDate ? "date" : isNum ? "figure" : "statement", name: n, value: isNum ? Number(val.replace(/,/g, "")) : val, ...(v(`u${i}`) ? { unit: v(`u${i}`) } : {}), label: `${n.replace(/_/g, " ")}${v("project_ref") ? ", " + v("project_ref") : ""}` });
+      }
+      const rec = { type: v("type"), tier: v("tier"), title: v("title"), facts, created_by: S.me.id, ...(v("project_ref") ? { project_ref: v("project_ref") } : {}), ...(v("issued_at") ? { issued_at: v("issued_at") } : {}), ...(v("expires_at") ? { expires_at: v("expires_at") } : {}) };
+      const parsed = Q.EvidenceInput.parse(rec);
+      const id = newId("EV");
+      if (await put("evidence_drafts", id, { ...parsed, permitted_uses: v("cert") ? [`certificate:${v("cert")}`] : [], status: "draft", created_at: now.toISOString() })) {
+        S.drafts.ev = {}; S.ui.addEvidence = false;
+        toast(S.me.isOwner ? "Filed as a draft. Approve it below to let agents use it." : "Filed. Asil approves it before any agent can use it.");
+      }
+    } else if (name === "unit") {
+      const id = newId("UNIT");
+      const u = { id, site: v("site"), owner_account_id: null, model: null, manufacturer: null, origin_document: v("origin_document") || null, handed_over_at: v("handed_over_at") || null,
+        warranty_ends_at: v("warranty_ends_at") || null, maintenance_contract: null, next_inspection_due: v("next_inspection_due") || null, next_registration_due: null, status: "active",
+        source: v("source"), owner_consent_at: null, maintenance_offer: "not_offered", installed_from_opportunity: null, modernisation_candidate: false, created_at: now.toISOString() };
+      if (u.site.length < 3) return err("Give the site a name.");
+      if (await put("units", id, u)) { S.drafts.unit = {}; S.ui.addUnit = false; toast("Registered."); }
+    } else if (name === "unitact") {
+      const u = S.data.units.find((x) => x._id === form.dataset.id);
+      const fields = { owner_consent_at: v("owner_consent_at") || null, maintenance_offer: v("maintenance_offer"), unverified: false, confirmed_by: S.me.id, confirmed_at: now.toISOString(),
+        handed_over_at: v("handed_over_at") || null, warranty_ends_at: v("warranty_ends_at") || null, next_inspection_due: v("next_inspection_due") || null,
+        manufacturer: v("manufacturer") || null, origin_document: v("origin_document") || null };
+      if (v("inspection_done")) fields.next_inspection_due = Q.addYears(v("inspection_done"), 1);
+      if (v("registration_done")) fields.next_registration_due = Q.addYears(v("registration_done"), 1);
+      if (v("contract_ends")) {
+        if (!v("contract_ref")) return err("Give the contract's reference, so the renewal can be traced to it.");
+        fields.maintenance_contract = Q.MaintenanceContract.parse({ contract_ref: v("contract_ref"), tier: u.maintenance_contract?.tier ?? "standard",
+          starts_at: u.maintenance_contract?.starts_at ?? today(), ends_at: v("contract_ends") });
+        fields.maintenance_offer = "accepted";
+      }
+      if (await patch("units", u._id, fields)) { S.drafts.unitact = {}; toast("Saved."); }
+    } else if (name === "entity") {
+      const given = {};
+      for (const k of Object.keys(ENTITY_LABEL)) { const val = v(k); if (val) given[k] = k === "founded_year" ? Number(val) : val; }
+      const parsed = Q.EntityFields.partial().safeParse(given);
+      if (!parsed.success) return err(`Correct: ${[...new Set(parsed.error.issues.map((i) => `${ENTITY_LABEL[i.path[0]] ?? i.path.join(".")} (${i.message})`))].join(", ")}.`);
+      const questions = v("questions").split("\n").map((x) => x.trim()).filter(Boolean);
+      if (await put("entity", "master", { status: "proposed", fields: parsed.data, questions, proposed_by: S.me.id, proposed_at: now.toISOString() })) {
+        S.drafts.entity = {}; S.ui.editEntity = false; toast("Saved. The record stays proposed until you approve it.");
+      }
+    } else if (name === "sitecheck") {
+      const html = v("html");
+      if (!html) return;
+      const figures = [...Q.rulebookFigures(S.brand), ...Q.figuresFromEvidence(approvedEvidence({ maxTier: "public" }))];
+      const ent = S.data.entity?.fields;
+      S.ui.siteResult = Q.auditHtml({ url: "https://pasted.page/", html }, { brand: S.brand, figures, ...(ent?.phone_main && ent?.email_main && ent?.website ? { entity: ent } : {}) });
+      render();
+    } else if (name === "check") {
+      const texts = {};
+      if (v("en")) texts.en = v("en");
+      if (v("ar")) texts.ar = v("ar");
+      if (!texts.en && !texts.ar) return;
+      const audience = v("audience");
+      const figures = [...Q.rulebookFigures(S.brand), ...Q.figuresFromEvidence(approvedEvidence({ maxTier: audience === "public" ? "public" : "tender" }))];
+      const r = Q.runTextGates(texts, { rules: S.brand, figures, audience, formal: false, people: people(), publicNumbers: publicNumbers() });
+      if (texts.en && texts.ar) {
+        for (const f of Q.checkParity(texts.en, texts.ar, S.brand, Q.isStrict(audience))) (f.severity === "fail" ? r.blocking : r.warnings).push({ ...f, lang: f.rule.endsWith("_in_ar") ? "ar" : "en" });
+        for (const f of Q.glossarySignals(texts.en, texts.ar, S.brand)) r.warnings.push({ ...f, lang: "ar" });
+        r.passed = r.blocking.length === 0;
+      }
+      S.ui.checkResult = r;
+      render();
+    }
+  } catch (ex) { err(errorCopy(ex)); }
+});
+
+async function startRun(kind, input, validate) {
+  try { validate(input); } catch (ex) { document.getElementById("agent-error").textContent = errorCopy(ex); return; }
+  document.getElementById("agent-error").textContent = "";
+  await runAgent(kind, input);
+}
+
+async function createRenewals() {
+  const cands = Q.renewalCandidates(S.data.units, S.data.opps, today(), S.rules.maintenance.renewal_window_days);
+  let n = 0;
+  for (const c of cands) {
+    try {
+      const o = Q.newOpportunity({
+        id: newId("OPP"), motion: "elevator", title: `${c.kind === "contract_end" ? "Maintenance renewal" : "Maintenance offer at warranty end"}: ${c.unit.site}`,
+        account_id: c.unit.owner_account_id ?? null, route: "maintenance_renewal", qottuf_role: "supplier_installer", stage: "new", owner: "desk_lead", installed_unit_id: c.unit.id ?? c.unit._id,
+        dates: { [c.kind === "contract_end" ? "contract_ends" : "warranty_ends"]: c.due },
+        next_step: { action: `${c.kind === "contract_end" ? "Renewal offer before the contract ends on" : "Maintenance offer before the warranty ends on"} ${c.due}`, owner: "desk_lead", due_at: new Date(Date.now() + 2 * 86400000).toISOString() },
+      }, { now: new Date(), by: S.me.id, rulesVersion: S.rulesVersion });
+      if (await put("opps", o.id, o)) n++;
+    } catch (e) { toast(errorCopy(e)); }
+  }
+  toast(n ? `${n} renewal opportunit${n === 1 ? "y" : "ies"} added to the pipeline.` : "Nothing to add.");
+}
+
+async function removeExamples() {
+  const jobs = [
+    ...S.data.opps.filter((o) => o.example).flatMap((o) => [["opps", o._id], ...(S.me.isOwner ? [["decisions", `bid-${o._id}`]] : [])]),
+    ...S.data.accounts.filter((a) => a.example).map((a) => ["accounts", a._id]),
+    ...S.data.contacts.filter((c) => c.example).map((c) => ["contacts", c._id]),
+  ];
+  let n = 0;
+  for (const [col, id] of jobs) {
+    try { await S.db.collection(col).doc(id).delete(); if (col !== "decisions") n++; }
+    catch (e) { toast(`Stopped after ${n}: ${errorCopy(e)}`); return; }
+  }
+  if (S.ui.selOpp && !byId(S.data.opps, S.ui.selOpp)) S.ui.selOpp = null;
+  toast(`Removed ${n} example records.`);
+}
+
+async function approveEntity() {
+  const ent = S.data.entity;
+  const el = document.getElementById("entity-error");
+  if (ent.questions?.length) { el.textContent = "Settle the open questions first: Edit, then delete each settled question."; return; }
+  const parsed = Q.EntityFields.safeParse(ent.fields);
+  if (!parsed.success) { el.textContent = `Fill in or correct first: ${[...new Set(parsed.error.issues.map((i) => `${ENTITY_LABEL[i.path[0]] ?? i.path.join(".")}${i.code === "invalid_type" ? "" : ` (${i.message})`}`))].join(", ")}.`; return; }
+  const problems = Q.checkAgainstRulebook(parsed.data, S.brand);
+  if (problems.length) { el.textContent = problems.join("; "); return; }
+  if (await put("entity", "master", { ...ent, _id: undefined, status: "approved", fields: parsed.data, approved_by: S.me.id, approved_at: new Date().toISOString() })) toast("Approved as the master record.");
+}
+
+// A republish reaches open views at a quiet moment; carry unsaved drafts and the open panels across it.
+function start(saved) {
+  const s = saved && typeof saved === "object" ? saved : {};
+  if (s.drafts && typeof s.drafts === "object") S.drafts = s.drafts;
+  if (s.ui && typeof s.ui === "object") Object.assign(S.ui, s.ui, { siteResult: null, checkResult: null, confirmRemove: 0 });
+  boot();
+}
+try { window.claude?.hot?.snapshot?.(() => clean({ drafts: S.drafts, ui: { ...S.ui, siteResult: null, checkResult: null } })); } catch {}
+if (window.claude?.hot?.ready) window.claude.hot.ready(start); else start(window.claude?.hot?.data ?? {});
+})();
+</script>
+<datalist id="roles"><option value="asil"><option value="bid_coordinator"><option value="desk_lead"><option value="technical_office"><option value="estimator"><option value="maintenance_supervisor"></datalist>

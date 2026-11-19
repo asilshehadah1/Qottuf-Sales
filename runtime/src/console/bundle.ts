@@ -8,7 +8,7 @@ export { redact, scanPii } from "../gates/pii.ts";
 export { checkParity, glossarySignals } from "../gates/parity.ts";
 export { runTextGates, isStrict } from "../gates/runGates.ts";
 export { BusinessRulesSchema } from "../config/schema.ts";
-export { NextStep, EvidenceInput, TIER_RANK } from "../ledger/schemas.ts";
+export { AccountInput, NextStep, EvidenceInput, TIER_RANK } from "../ledger/schemas.ts";
 export { projectProof } from "../ledger/proof.ts";
 export { figuresFromEvidence, riyadhDate } from "../ledger/figures.ts";
 export { allowedNext, isOpen, initialStages, LOSS_REASONS, CONTRACTING_STAGES, ELEVATOR_STAGES } from "../pipeline/stages.ts";
