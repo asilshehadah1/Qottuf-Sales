@@ -16,7 +16,15 @@ npm run board   # the board on this computer: http://localhost:4300
 
 ## The board, on your computer
 
-`npm run board`, then open **http://localhost:4300**. It is the department's one screen:
+**Install on a Mac, in one line** (Terminal). It downloads the code to `~/Qottuf-Sales`, installs Node with Homebrew if it's missing, asks for the Anthropic API key, finds the brand skill, adds a `qottuf-board` command and starts the board. Run it again to update; it keeps `.env` and the data:
+
+```bash
+bash <(curl -fsSL https://raw.githubusercontent.com/asilshehadah1/Qottuf-Sales/refs/heads/claude/hopeful-archimedes-6kncjp/runtime/scripts/install-board.sh)
+```
+
+Afterwards, `qottuf-board` in any new Terminal window starts it and opens the page (or double-click `~/Qottuf-Sales/Qottuf Board.command`). From a checkout: `npm run board`, then open **http://localhost:4300**.
+
+It is the department's one screen:
 - all 38 agents of the merged roster, from the sales and the marketing designs;
 - the approvals queue;
 - the Ledger, the website and the CRM.
