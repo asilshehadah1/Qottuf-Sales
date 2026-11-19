@@ -8,8 +8,7 @@
 // - structured data takes the company name from the master record, never the retired "Qottuf Al Jazeera".
 // Not done, and said so in `gaps`: Core Web Vitals (needs PageSpeed/Lighthouse) and Google's Rich Results Test.
 
-import type { EntityFields } from "../entity/entity.ts";
-import { phoneKey, urlKey } from "../entity/entity.ts";
+import { phoneKey, urlKey, type EntityFields } from "../entity/compare.ts";
 import { brandCheck, compileBrandRules, type BrandRules } from "../gates/brand.ts";
 import { checkClaims, type ApprovedFigure } from "../gates/claims.ts";
 import type { Finding } from "../gates/findings.ts";

@@ -2,16 +2,12 @@ import type { BusinessRules } from "../config/rules.ts";
 import type { Db } from "../db/db.ts";
 import type { DnsResolver } from "../deliverability/mailDomain.ts";
 import type { BrandRules } from "../gates/brand.ts";
-import type { ModelClient, ModelResult } from "../model/client.ts";
+import type { KnownPerson } from "../gates/pii.ts";
+import type { ModelClient, ModelResult } from "../model/core.ts";
+import type { RunStep, WorkflowEnv } from "../workflows/types.ts";
 
-export interface RunStep {
-  step: string;
-  agent?: string;
-  promptVersion?: string;
-  result?: ModelResult<unknown>;
-  outcome: "ok" | "failed" | "refused" | "retry" | "blocked";
-  details?: Record<string, unknown>;
-}
+export type { RunStep } from "../workflows/types.ts";
+export { sar } from "../workflows/types.ts";
 
 export interface PipelineContext {
   db: Db;
@@ -38,6 +34,14 @@ export interface PipelineOutcome {
 
 export type Pipeline = (ctx: PipelineContext, input: unknown) => Promise<PipelineOutcome>;
 
-export function sar(n: number): string {
-  return `SAR ${n.toLocaleString("en-US")}`;
+/** The environment a pure workflow needs, from the dispatcher's context. */
+export function workflowEnv(ctx: PipelineContext, people: KnownPerson[]): WorkflowEnv {
+  return {
+    brand: ctx.brand,
+    rulesVersion: ctx.rules.rulesVersion,
+    people,
+    publicNumbers: ctx.publicNumbers,
+    callAgent: ctx.callModel,
+    step: ctx.step,
+  };
 }

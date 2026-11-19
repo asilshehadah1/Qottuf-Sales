@@ -1,7 +1,8 @@
 import { existsSync } from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
-import { loadBrandRules, type BrandRules } from "../src/gates/brand.ts";
+import type { BrandRules } from "../src/gates/brand.ts";
+import { loadBrandRules } from "../src/gates/brandLoader.ts";
 
 const here = path.dirname(fileURLToPath(import.meta.url));
 

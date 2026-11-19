@@ -11,7 +11,8 @@
     "typecheck": "tsc -p tsconfig.json",
     "test": "vitest run",
     "demo": "tsx src/cli/demo.ts",
-    "check": "tsx src/cli/check.ts"
+    "check": "tsx src/cli/check.ts",
+    "build:console": "node scripts/build-console.mjs"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "1.10.0",

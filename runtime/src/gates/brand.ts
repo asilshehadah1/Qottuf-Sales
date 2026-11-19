@@ -3,7 +3,6 @@
 // (business-development spec §4). Number verification lives in the claims gate (claims.ts), which
 // uses the same verified figures plus the evidence store.
 
-import { readFile } from "node:fs/promises";
 import { z } from "zod";
 import { FindingList, type Finding } from "./findings.ts";
 import { escapeRegex, pyRegex } from "./regex.ts";
@@ -48,11 +47,6 @@ export const BrandRulesSchema = z.object({
   project_mentions: z.record(z.string(), z.string()),
 });
 export type BrandRules = z.infer<typeof BrandRulesSchema>;
-
-export async function loadBrandRules(path: string): Promise<BrandRules> {
-  const raw = JSON.parse(await readFile(path, { encoding: "utf-8" }));
-  return BrandRulesSchema.parse(raw);
-}
 
 interface CompiledRules {
   rules: BrandRules;

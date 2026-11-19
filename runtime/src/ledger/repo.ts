@@ -5,9 +5,9 @@
 import { audit } from "../audit/audit.ts";
 import { canApprove, type BusinessRules } from "../config/rules.ts";
 import { dateText, type Db, type Queryable } from "../db/db.ts";
-import type { ApprovedFigure } from "../gates/claims.ts";
 import type { KnownPerson } from "../gates/pii.ts";
-import type { Unit } from "../gates/numbers.ts";
+export { figuresFromEvidence, riyadhDate } from "./figures.ts";
+import { riyadhDate } from "./figures.ts";
 import {
   AccountInput, ConsentInput, ContactInput, EvidenceInput, TIER_RANK,
   type EvidenceFact, type EvidenceRecord, type Tier,
@@ -143,10 +143,6 @@ function rowToEvidence(r: Record<string, unknown>): EvidenceRecord {
   };
 }
 
-export function riyadhDate(at = new Date()): string {
-  return new Date(at.getTime() + 180 * 60_000).toISOString().slice(0, 10);
-}
-
 /**
  * Read evidence as the application role, with the tier ceiling enforced by the database.
  * Confidential rows are returned only if Asil released them (S-G6) for a purpose that is still open.
@@ -177,31 +173,4 @@ export async function readEvidence(db: Db, o: EvidenceReadOptions): Promise<Evid
     }
     return rows;
   });
-}
-
-const UNIT_ALIASES: Record<string, Unit> = {
-  sar: "sar", sqm: "sqm", "m2": "sqm", "m²": "sqm", floor: "floor", floors: "floor", bed: "bed", beds: "bed",
-  seat: "seat", elevator: "elevator", lift: "elevator", building: "building", day: "day", week: "week",
-  month: "month", year: "year", percent: "percent", project: "project",
-};
-
-/** Approved figures and dates the claims gate may match, from evidence the reader is allowed to see. */
-export function figuresFromEvidence(records: EvidenceRecord[]): ApprovedFigure[] {
-  const out: ApprovedFigure[] = [];
-  for (const r of records) {
-    for (const f of r.facts) {
-      if (f.kind === "statement") continue;
-      const unit = f.unit ? UNIT_ALIASES[f.unit.toLowerCase()] ?? null : null;
-      out.push({
-        value: f.kind === "figure" ? Number(f.value) : null,
-        ...(f.kind === "date" ? { date: String(f.value) } : {}),
-        unit,
-        ...(f.context ? { context: f.context } : {}),
-        label: f.label,
-        sourceId: `${r.id}#${f.id}`,
-        projectRef: r.project_ref,
-      });
-    }
-  }
-  return out;
 }

@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
-import { brandCheck, compileBrandRules, loadBrandRules } from "../src/gates/brand.ts";
+import { brandCheck, compileBrandRules } from "../src/gates/brand.ts";
+import { loadBrandRules } from "../src/gates/brandLoader.ts";
 import { fixtureRules, realRulesPath } from "./helpers.ts";
 
 const rules = await fixtureRules();
