@@ -1,0 +1,60 @@
+{
+  "version": "2026-11-19.1",
+  "approved_by": "PENDING: Asil",
+  "sources": [
+    "qottuf-business-development-department-v1.md §1 (scope), §3.1 (knock-outs), §3.2 (elevators), §8 (Phase 1)",
+    "qottuf-agentic-sales-department-v1.md §10.1 (scorecard), §11 (gates), §8 SC (elevator SLAs)"
+  ],
+  "change_rule": "Weights, thresholds and the band are versioned. A change needs Asil's approval and a new version; every decision records the version it used.",
+  "contracting": {
+    "band_sar": { "min": 20000000, "max": 100000000 },
+    "required_role": "main_contractor",
+    "excluded_sectors": ["villa", "residential_villa"],
+    "service_lines": ["fit_out", "mep", "civil", "renovation", "elevators", "smart_accessibility"],
+    "bid_decision_hours": 48,
+    "min_working_days_to_bid": 10
+  },
+  "scorecard": {
+    "version": "1",
+    "factors": [
+      { "id": "fit", "label": "Fit: same scope and scale delivered", "weight": 15 },
+      { "id": "relationship", "label": "Relationship and access", "weight": 15 },
+      { "id": "shaping", "label": "Shaping: involved before the tender", "weight": 10 },
+      { "id": "competition", "label": "Competitive position", "weight": 10 },
+      { "id": "price_position", "label": "Price position vs price-to-win data", "weight": 10 },
+      { "id": "evaluation_fit", "label": "Evaluation-method fit", "weight": 5 },
+      { "id": "margin_risk", "label": "Margin and commercial risk", "weight": 10 },
+      { "id": "payer", "label": "Payer reliability", "weight": 10 },
+      { "id": "strategic", "label": "Strategic value", "weight": 10 },
+      { "id": "capacity", "label": "Capacity at that time", "weight": 5 }
+    ],
+    "thresholds": { "go": 65, "conditional": 45 }
+  },
+  "elevator": {
+    "first_contact_hours": 24,
+    "technical_response_hours": 48,
+    "survey_hours": 48
+  },
+  "approvers": {
+    "S-G1": ["asil"],
+    "S-G2": ["asil"],
+    "S-G3": ["asil"],
+    "S-G5": ["asil", "bid_coordinator"],
+    "S-G6": ["asil"],
+    "artifact": ["asil"]
+  },
+  "work_week": {
+    "timezone_offset_minutes": 180,
+    "weekend_days": [5, 6],
+    "holidays": []
+  },
+  "evidence": {
+    "expiry_alert_days": [60, 30, 7]
+  },
+  "proof_test": {
+    "due": "2026-12-17",
+    "projects_required": 3,
+    "required_types": ["contract", "completion_certificate"],
+    "required_facts": ["contract_value", "start_date", "completion_date"]
+  }
+}
