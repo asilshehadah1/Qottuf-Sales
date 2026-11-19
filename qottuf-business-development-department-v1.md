@@ -1,7 +1,7 @@
 # Qottuf Aljazeera — Business Development Department
-### Sales and Marketing, merged · Operating Specification v1.0 · 19 November 2026
+### Sales and Marketing, merged · Operating Specification v1.1 · 19 November 2026
 
-*Agreed by the Chief Sales Officer and the Chief Marketing Officer in the executive meeting of 18–19 November 2026 (minutes: `meetings/2026-11-19-cso-cmo-executive-meeting.md`). Built on Asil's binding answers of 18 November. Where this document differs from `qottuf-agentic-sales-department-v1.md` (v1.1) or `qottuf-agentic-marketing-department-v1.md` (v1.0), this document wins. Tier 1 is in `qottuf-tier1-2028-roadmap.md`; every weakness and its fix is in `qottuf-weakness-register.md`.*
+*Agreed by the Chief Sales Officer and the Chief Marketing Officer in the executive meeting of 18–19 November 2026 (minutes: `meetings/2026-11-19-cso-cmo-executive-meeting.md`). Built on Asil's binding answers of 18 November, and updated with Asil's answers of 19 November (no new hires; Asil covers the bilingual role; classification is Asil's; villa lifts in scope). Where this document differs from `qottuf-agentic-sales-department-v1.md` (v1.1) or `qottuf-agentic-marketing-department-v1.md` (v1.0), this document wins. Tier 1 is in `qottuf-tier1-2028-roadmap.md`; every weakness and its fix is in `qottuf-weakness-register.md`.*
 
 > **In one paragraph.** One department, Business Development, led by Asil. It does two jobs: get Qottuf invited to, and win, the SAR 20–100 m main contracts it can deliver; and grow elevators and maintenance. It claims nothing it can't prove. Two lanes share one pipeline, one scoreboard and one approval queue: **Win** (pipeline, bids, accounts, elevator desk) and **Proof & Demand** (evidence, prequalification pack, website, brand, campaigns). One runtime, one record, one evidence store, one brand gate. The two previous designs had 78 components; this one has 38 at full build, and 14 in the first 90 days. The first 90 days are about proof and pipeline, not agents.
 
@@ -20,6 +20,10 @@
 | Two runtimes, two rulebooks, two governance layers | **One runtime** (sales design), **one rulebook** (the brand skill's `brand-rules.json`), **one governance layer** | The marketing runtime can't run safely as it stands |
 | 44 + 34 components | **38 at full build, 14 in 90 days** | Volume doesn't justify more |
 | "Fuji Japan" as the differentiator | **"Japan" and "partnership" off every public surface** until the certificate of origin, the manufacturer's legal name and an authorisation naming Qottuf are in hand | Three claims, three documents |
+| A bilingual coordinator to be hired | **No new hires.** Asil covers the bilingual role; every role is filled by Asil or existing staff; the AI drafts and prepares, Asil edits and approves | Asil's answer (19 Nov) |
+| Classification on Business Development's action list | **Classification is Asil's to manage,** outside this department's plan | Asil's answer (19 Nov) |
+| Villa lifts to be confirmed | **Villa lifts are in scope.** "No villas" applies to contracting only, and contracting is big projects only | Asil's answer (19 Nov) |
+| Access to be requested | **Asil gives the team access** to the website, configurator hosting and social and ad accounts | Asil's answer (19 Nov) |
 
 ---
 
@@ -30,9 +34,8 @@
 | In scope | Out of scope |
 |---|---|
 | Main contracts of SAR 20–100 m in Riyadh, institutional and corporate buildings and fit-outs (education, healthcare, corporate HQ, offices, commercial), and completion of stalled projects in band | Villa construction; any project under SAR 20 m; subcontract packages |
-| JV participation above SAR 100 m only where Qottuf's share and scope fit the band, case by case with Asil's approval (cap option 1, pending Asil's decision) | Solo pursuits above SAR 100 m until Asil moves the cap (option 2, reviewed at G2) |
-| Elevators: villa, residential, commercial and institutional lifts (Asil to confirm villa lifts are in scope; "no villas" is read as a contracting rule) | Data-centre packages; smart accessibility until an authorisation letter and a first delivered project exist |
-| Elevator maintenance: renewals, inspections, modernisation, takeovers | |
+| Elevators: villa, residential, commercial and institutional lifts (confirmed by Asil: "no villas" applies to contracting only) | Projects above SAR 100 m (the band is Asil's to change) |
+| Elevator maintenance: renewals, inspections, modernisation, takeovers | Data-centre packages; smart accessibility until an authorisation letter and a first delivered project exist |
 
 ---
 
@@ -53,25 +56,28 @@
 
 | Role | Owns | Holder | Status |
 |---|---|---|---|
+**No new hires (Asil, 19 November).** Every role below is held by Asil or by existing staff, and the AI does the preparation.
+
+| Role | Owns | Holder | Status |
+|---|---|---|---|
 | Head of Business Development | Selling, bid decisions, prices, submissions sign-off, the weekly board | Asil | In place |
+| Bilingual coordinator | Native Arabic writing and review, website content, approval of photography | **Asil** | In place. The AI drafts every Arabic and English text for Asil to edit, not write. Site photography and design are bought per job |
 | Account sponsor (optional) | Two or three key accounts | Deputy GM, if Asil agrees | **Ask Asil** |
-| Bid coordinator | Bid board preparation, submissions, evidence filing, registrations, document chasing | Document Controller | Appoint |
+| Bid coordinator | Bid board preparation, submissions, evidence filing, registrations, document chasing | Document Controller | Appoint (existing staff) |
 | Estimator | Cost in `qottuf-estimation` | Quantity Surveyor | In place |
 | Technical reviewer | Technical sections, method statements, clarifications | Construction or MEP Director | Per bid |
-| **Bilingual coordinator** | Native Arabic writing, site shoots, website updates, document chasing with the bid coordinator | **Nobody today** | **Hire in-house** (not an agency: an agency can't walk into the PMO for a completion certificate). Photography and design bought per job |
-| Elevator desk lead + desk | Calls, budget quotes, closing | CRM `agent` role | In place; shifts sized after the 30-day read |
+| Elevator desk lead + desk | Calls, budget quotes, closing | CRM `agent` role | In place; working hours set after the 30-day read |
 | Elevator technical office | Detailed pricing | CRM `technical` role | In place |
-| Maintenance supervisor | Maintenance delivery; licence on file | Existing maintenance team | Confirm the SASO maintenance licence is filed |
-| Compliance reviewer | Integrity flags, hospitality register | Commercial Manager or counsel | Appoint |
-| System owner | Runtime, on-call, restore drills, evals | Part-time engineer or contractor | Appoint, budget |
-| Independent researcher | Annual recognition census | One-off, external | Budget for Q1 2027 |
-| **Second BD person** | Capture and coverage | — | **Hire after G1 if the prequalification target is met** |
+| Maintenance team | Maintenance delivery and the SASO licence on file; **site surveys within 48 hours for elevator quotes** (they are already in the field) | Existing maintenance team | In place |
+| Compliance reviewer | Integrity flags, hospitality register | Commercial Manager or counsel | Appoint (existing staff) |
+| Builder | Builds and maintains the runtime and integrations; restore drills; evals. Every change is approved by Asil, the same working model as the technical-agent repo | Claude Code | In place |
+| Recognition census (optional) | The annual independent interviews | A university research partner: a vendor engagement, not a hire | Asil to approve the budget |
 
-**Asil's time is the scarcest resource in the company.** It is protected four ways:
+**Asil's time is the scarcest resource in the company,** and Asil now also covers the bilingual role. It is protected four ways:
 1. **One weekly BD board, 90 minutes:** pipeline, plans, content and publishing approvals in one batch.
 2. **A 48-hour bid path** outside the board: bid decisions, prices and submissions approved by a 15-minute call or a logged phone approval.
-3. **Everything that can be prepared is prepared:** meeting briefs and debriefs, board packs, draft profiles and posts, prequalification packs, clause libraries.
-4. **Delegation:** the bid coordinator runs the bid machinery; the bilingual coordinator runs marketing execution; the desk lead runs the elevator desk.
+3. **Everything that can be prepared is prepared:** meeting briefs and debriefs, board packs, draft Arabic and English copy, draft profiles and posts, prequalification packs, clause libraries. Asil edits and approves; Asil doesn't start from a blank page.
+4. **Delegation:** the bid coordinator runs the bid machinery and chases documents; the desk lead runs the elevator desk; the maintenance team runs site surveys.
 
 ---
 
@@ -89,7 +95,7 @@ Coverage of target organisations ─► early signals ─► capture plan ─►
 - **Coverage is the engine:** about 20 priority target organisations (owners, developers, PMCs, consultants that let the most work in the band), each with a named Qottuf owner, a meeting cadence, and an account plan of at most three live actions.
 - **Prequalification is the gate:** the prequalification pack, built on documented references, is the single most important artifact of the department.
 - **Invited, not hunting:** the aim is that by 2028 most main-contract bids come from invitations.
-- **Bid/no-bid knock-outs added at this meeting:** outside SAR 20–100 m; not main contractor (except an approved JV whose share and scope fit the band); comparable-value references not met.
+- **Bid/no-bid knock-outs added at this meeting:** outside SAR 20–100 m; not main contractor; comparable-value references not met.
 - **First pursuits are chosen for deliverability, reference value and payer reliability,** not size.
 - **Maintenance as access:** maintenance contracts on public-use lifts in universities, hospitals and offices keep Qottuf inside buildings whose owners let SAR 20–100 m contracts. Every maintenance client is a coverage contact.
 
@@ -110,7 +116,8 @@ Readiness gate ─► campaign ─► enquiry ─► acknowledgement ─► call
   - correct prices on every configurator page an ad links to;
   - campaign identifiers on every lead;
   - Arabic creative approved by Asil in the elevator register.
-- **Desk agents and extra shifts are sized from the 30-day read,** not from assumptions.
+- **Site surveys within 48 hours** are made by the maintenance team, who are already in the field.
+- **Desk agents and the desk's working hours are set from the 30-day read,** not from assumptions.
 
 ---
 
@@ -118,8 +125,8 @@ Readiness gate ─► campaign ─► enquiry ─► acknowledgement ─► call
 
 | Element | Decision | Owner |
 |---|---|---|
-| Runtime | **One runtime built to the sales spec's design** (own database, no published ports, every API authenticated, structured outputs, current models). The marketing runtime is retired entirely; five no-model modules (red-flag scanner, statistics test, DNS check, SEO audit, schema mapper; about 600 lines with tests) are ported as code; everything that calls a model is rewritten to the new API rules | System owner |
-| Record | **One Ledger** for accounts, contacts, consent, opportunities, registrations, evidence and outcomes. The elevator CRM stays the desk's tool and syncs to it | System owner |
+| Runtime | **One runtime built to the sales spec's design** (own database, no published ports, every API authenticated, structured outputs, current models). The marketing runtime is retired entirely; five no-model modules (red-flag scanner, statistics test, DNS check, SEO audit, schema mapper; about 600 lines with tests) are ported as code; everything that calls a model is rewritten to the new API rules | Builder (Claude Code; Asil approves) |
+| Record | **One Ledger** for accounts, contacts, consent, opportunities, registrations, evidence and outcomes. The elevator CRM stays the desk's tool and syncs to it | Builder (Claude Code; Asil approves) |
 | Evidence store | **One store, four tiers** (public, tender, confidential, internal). The fact base is its public tier. Nothing reaches the website, a proposal or a quote cover unless the store backs it. Certificates go in with expiry dates and into every prequalification pack, never into messaging | Claim rules: CMO. Filing: bid coordinator. Prequalification completeness: CSO. Confidential release: Asil |
 | Rulebook | **One rulebook:** the brand skill's `brand-rules.json`. `brand_book.yaml` on `main` is retired: it lists the correct name, "Qottuf Aljazeera", and «قطوف الجزيرة» as forbidden variants | CMO |
 | Brand gate | On every client-facing word, proposals included. **Service level on bids:** automatic checks on every save in seconds; claim verification in minutes; human review of new text the same working day if received by 13:00, otherwise by 10:00 the next day; final brand pass closes at D-3. If the gate ever misses, the approved clause from the library replaces the unreviewed text: the gate never sends unreviewed text and never costs a deadline. It reads claims, numbers, names and register only; lowest-price tenders get the automatic checks only | CMO |
@@ -213,7 +220,7 @@ Readiness gate ─► campaign ─► enquiry ─► acknowledgement ─► call
 | Cadence | Forum | Contents |
 |---|---|---|
 | As needed, ≤ 48 h | Bid path | Bid decisions, prices, submissions: a 15-minute call or a logged phone approval |
-| Weekly, 90 min | BD board (Asil, bid coordinator, elevator desk lead, bilingual coordinator) | Pipeline, coverage, approvals batch (content, publishing, plans), capacity. The board pack is prepared by the system |
+| Weekly, 90 min | BD board (Asil, bid coordinator, elevator desk lead) | Pipeline, coverage, approvals batch (content, publishing, plans), capacity. The board pack is prepared by the system |
 | Monthly | Pipeline and proof review | References, prequalification status, case studies used, website check, win/loss |
 | Quarterly | Plan | Targets, gates, playbook changes, budget |
 | Annual (Q1) | Recognition census | Independent interviews with the 20 targets + 20 non-clients |
@@ -224,17 +231,17 @@ Readiness gate ─► campaign ─► enquiry ─► acknowledgement ─► call
 
 | Date | Commitment | Owner |
 |---|---|---|
-| This week | Classification ceiling and expiry read off the certificate; documents requested for all 12 projects plus the Elm and Hilton buildings (contract value, dates, completion certificate, referee consent); the three elevator documents requested (certificate of origin, manufacturer's legal name, authorisation naming Qottuf); access to the live website, configurator hosting and social/ad accounts; coordinator hiring started; the office landline tested | Bid coordinator, CMO, Asil, desk lead |
+| This week | Documents requested for all 12 projects plus the Elm and Hilton buildings (contract value, dates, completion certificate, referee consent); the three elevator documents requested (certificate of origin, manufacturer's legal name, authorisation naming Qottuf); Asil gives the team access to the live website, configurator hosting and social/ad accounts; the office landline tested | Bid coordinator, CMO, Asil, desk lead |
 | 26 Nov 2026 | **Five urgent website fixes** (given access this week): dealer configurator out of public view; Ministry of Interior logo removed; "Japan" held back (with "partnership"); "13+ Years" → "Since 2014"; project count and headcount removed | CMO |
 | 3 Dec | Readiness gate review: go or no-go | CSO; Asil decides |
 | 6 Dec | Elevator campaign launch, only if the gate passed | CMO |
 | 10 Dec | Decision: recover the live website's source or rebuild the site | Asil |
-| 17 Dec | **Proof test, reported to Asil in writing:** Qottuf's own documents (contract value, dates, completion certificate) for three projects. Also: draft prequalification pack; Asil's LinkedIn profile in both languages; the remaining small fixes; hosting and data residency decided; system owner funded | CMO + bid coordinator; Asil |
+| 17 Dec | **Proof test, reported to Asil in writing:** Qottuf's own documents (contract value, dates, completion certificate) for three projects. Also: draft prequalification pack; Asil's LinkedIn profile in both languages; the remaining small fixes; hosting and data residency decided | CMO + bid coordinator; Asil |
 | 5 Jan 2027 | 30-day campaign read; elevator desk sized | CSO + CMO |
-| January | **If the proof test failed: JV-first from January.** Asil's posts begin (at most two a month, from Asil's own voice notes or approved proof; fails closed). Phase 1 build from 18 January (conditional on hosting and the system owner) | Asil; CMO; system owner |
-| 31 Jan | **G0:** reference file including referee consents; every project documented or removed from contracting material; Arabic and English clause library (each clause tied to an evidence record, expiring with it); one rulebook; master company record; classification ceiling confirmed and cap decided; baseline (backlog, delivery capacity, past bids) from finance and the PMO in the confidential tier; top-20 priority list with named owners; every in-band opportunity in the Ledger; the 14 Phase 1 components live | All |
+| January | **If the proof test failed: JV-first from January.** Asil's posts begin (at most two a month, from Asil's own voice notes or approved proof; fails closed). Phase 1 build from 18 January (conditional on the hosting decision) | Asil; CMO; builder |
+| 31 Jan | **G0:** reference file including referee consents; every project documented or removed from contracting material; Arabic and English clause library (each clause tied to an evidence record, expiring with it); one rulebook; master company record; baseline (backlog, delivery capacity, past bids) from finance and the PMO in the confidential tier; top-20 priority list with named owners; every in-band opportunity in the Ledger; the 14 Phase 1 components live | All |
 
-**The G0 website bar:** nothing false; contact details that work; both languages; the credentials line; documented references only; an enquiry form with consent wording. Full sector pages and new photography follow once the coordinator starts.
+**The G0 website bar:** nothing false; contact details that work; both languages; the credentials line; documented references only; an enquiry form with consent wording. Full sector pages and new photography follow after G0.
 
 **Claims policy:** "verified" means backed by documents. Beetroot and the private retreat stay in the evidence store but come off contracting-facing material (true, but they tell a SAR 50 m buyer the wrong story), and so does any project still undocumented on 31 January.
 
@@ -242,21 +249,21 @@ Readiness gate ─► campaign ─► enquiry ─► acknowledgement ─► call
 
 ## 9. Decisions for Asil
 
-In order of urgency. The full reasoning is in the minutes.
+In order of urgency. The full reasoning is in the minutes. Status as of Asil's answers on 19 November.
 
-| # | Decision | Recommended |
-|---|---|---|
-| 1 | **Proof:** approve requests to referees, finance and the PMO for all 12 projects plus the Elm and Hilton buildings; send a written instruction to the PMO Director and finance, with dates, that the reference file and the G0 baseline are company priorities | Yes, this week |
-| 2 | **Ceiling and cap:** read the ceiling and expiry; choose a cap option | Option 1 with the JV conditions; option 2 reviewed at G2 |
-| 3 | **The pivot rule:** if the 17 December proof test fails, JV-first from January | Adopt |
-| 4 | **This department as specified,** with a fixed weekly 90-minute BD board in Asil's calendar | Adopt |
-| 5 | **People:** bilingual coordinator; bid coordinator; system owner; compliance reviewer; Deputy GM as account sponsor | Yes; ask the Deputy GM |
-| 6 | **Access this week:** live website, configurator hosting, social and ad accounts in company ownership | Yes |
-| 7 | **Hosting and data residency** for the runtime | By 17 December |
-| 8 | **Tier 1 commitment** (see the roadmap) | T1-Segment and T1-Delivery by end-2028; T1-Market through JVs; route C to the shareholders in 2027 |
-| 9 | **Asil as the face of Qottuf:** LinkedIn profile, two posts a month, single crisis spokesperson | Agree |
-| 10 | **Elevators:** villa lifts in scope; budget price book; readiness gate and launch dates; Fuji documents and wording | Confirm; approve |
-| 11 | **Claims and brand:** one rulebook, the claims policy, the open Arabic decisions, two registers, one specific promise, written naming permissions, "NCB (now SNB)", names not logos | Adopt; copy decisions at the first weekly board |
-| 12 | **Website:** recover or rebuild | By 10 December |
-| 13 | **Delivery (company):** tracker live on the next project; finance yes/no on bonding per pursuit | Instruct |
-| 14 | **Budget lines:** coordinator, system owner, photography per job, recognition census | Approve |
+| # | Decision | Recommended | Status |
+|---|---|---|---|
+| 1 | **Proof:** approve requests to referees, finance and the PMO for all 12 projects plus the Elm and Hilton buildings; send a written instruction to the PMO Director and finance, with dates, that the reference file and the G0 baseline are company priorities | Yes, this week | **Open** |
+| 2 | ~~Ceiling and cap~~ | — | **Removed:** classification is Asil's to manage; the band stays SAR 20–100 m as Asil set it |
+| 3 | **The pivot rule:** if the 17 December proof test fails, JV-first from January | Adopt | Open |
+| 4 | **This department as specified,** with a fixed weekly 90-minute BD board in Asil's calendar | Adopt | Open |
+| 5 | **People** | — | **Decided:** no new hires; Asil covers the bilingual role; bid coordinator and compliance reviewer appointed from existing staff; Claude Code builds with Asil approving. Still open: whether the Deputy GM sponsors two or three accounts |
+| 6 | **Access:** live website, configurator hosting, social and ad accounts | — | **Decided:** Asil gives the team access. Keep the accounts in company ownership with two admins each |
+| 7 | **Hosting and data residency** for the runtime | By 17 December | Open |
+| 8 | **Tier 1 commitment** (see the roadmap) | T1-Segment and T1-Delivery by end-2028; T1-Market through JVs if Asil chooses that route | Open |
+| 9 | **Asil as the face of Qottuf:** LinkedIn profile, two posts a month, single crisis spokesperson | Agree | Open |
+| 10 | **Elevators:** budget price book; readiness gate and launch dates; Fuji documents and wording | Approve | **Villa lifts decided: in scope.** The rest is open |
+| 11 | **Claims and brand:** one rulebook, the claims policy, the open Arabic decisions, two registers, one specific promise, written naming permissions, "NCB (now SNB)", names not logos | Adopt; copy decisions at the first weekly board | Open |
+| 12 | **Website:** recover or rebuild | By 10 December | Open |
+| 13 | **Delivery (company):** tracker live on the next project; finance yes/no on bonding per pursuit | Instruct | Open |
+| 14 | **Budget lines:** photography per job; the recognition census (a vendor, not a hire) | Approve | Open (no salaries: no new hires) |

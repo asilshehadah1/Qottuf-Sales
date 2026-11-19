@@ -9,6 +9,32 @@
 
 ---
 
+## Update after Asil's answers (19 November): read this first
+
+Asil answered four points the morning after the meeting. Where they differ from the minutes below, Asil's answers win; the minutes are kept as the record of what was said.
+
+1. **Classification is Asil's to manage.** Removed from Business Development's plan: the ceiling read, the cap options, the T1-Formal (Grade 1) level with its grade-upgrade gates, and route C (capital or partner). Joint ventures stay an option for Asil only, not part of the plan. The band stays **SAR 20–100 m main contracts**, as Asil set it.
+2. **Asil gives the team access** to the website, the configurator hosting and the social and ad accounts.
+3. **No new hires.** Asil covers the bilingual role; the bid coordinator and compliance reviewer come from existing staff; Claude Code builds the systems with Asil approving every change; 48-hour site surveys for elevator quotes move to the maintenance team.
+4. **Villa lifts are in scope.** "No villas" applies to contracting only, and contracting is big projects only.
+
+The department spec, the Tier 1 roadmap (now three levels, all inside the band) and the weakness register are updated to v1.1 accordingly.
+
+**Still open for Asil:**
+- **Proof:** approve the document requests and send the written instruction to the PMO and finance.
+- **Rules and dates:**
+  - the pivot rule;
+  - hosting and data residency by 17 December;
+  - the website decision by 10 December.
+- **Commitments:**
+  - the Tier 1 commitment;
+  - being the face of Qottuf;
+  - the budget price book and the readiness-gate dates;
+  - the claims and brand decisions.
+- **People:** whether the Deputy GM sponsors two or three accounts.
+
+---
+
 ## Outcome, in one page
 
 1. **One department: Business Development, led by Asil.** Two lanes, **Win** (CSO: pipeline, bids, accounts, elevator desk) and **Proof & Demand** (CMO: evidence, prequalification pack, website, brand, campaigns). One pipeline, one scoreboard, one approval queue, plus a 48-hour path for bids. One runtime built to the sales design. The marketing runtime is retired, never deployed; five no-model modules are ported. The two designs' 78 components become 38 at full build, and 14 in the first 90 days.

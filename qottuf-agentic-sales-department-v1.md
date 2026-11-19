@@ -9,6 +9,7 @@
 > - **Certifications** are held and used as evidence, never as talking points.
 > - **No campaign has launched,** so the elevator desk is sized from the first 30 days of real data.
 > - **Phase 1 is Proof and Pipeline.**
+> - **Asil's answers of 19 November:** no new hires (Asil covers the bilingual role; Claude Code builds and Asil approves every change); classification is Asil's to manage; villa lifts are in scope ("no villas" applies to contracting only).
 >
 > The agent cards, workflows, gates, data contracts and red-team log below remain the detailed design reference for the merged roster. Tier 1 is in `qottuf-tier1-2028-roadmap.md`; every weakness is in `qottuf-weakness-register.md`.
 
