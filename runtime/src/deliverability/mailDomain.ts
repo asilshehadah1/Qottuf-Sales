@@ -65,7 +65,8 @@ export interface MailDomainReport {
   spf: { record: string | null; lookups: number; issues: string[] };
   dkim: { checked: string[]; found: string[]; issues: string[] };
   dmarc: { record: string | null; policy: string | null; subdomainPolicy: string | null; reports: boolean; issues: string[] };
-  verdict: "protected" | "at_risk" | "unprotected";
+  /** "unknown": every lookup came back empty, which usually means the network blocks DNS, not that the domain is bare. */
+  verdict: "protected" | "at_risk" | "unprotected" | "unknown";
   summary: string;
   gaps: string[];
 }
@@ -90,7 +91,8 @@ export async function checkMailDomain(domain: string, resolver: DnsResolver, opt
   const mx = { hosts: mxRecords.sort((a, b) => a.priority - b.priority).map((m) => m.exchange), issues: [] as string[] };
   if (mx.hosts.length === 0) mx.issues.push("No MX records: replies to quotes have nowhere to arrive.");
 
-  const spfRecords = (await resolver.txt(d)).map((c) => c.join("")).filter((r) => /^v=spf1(\s|$)/i.test(r));
+  const rootTxt = (await resolver.txt(d)).map((c) => c.join(""));
+  const spfRecords = rootTxt.filter((r) => /^v=spf1(\s|$)/i.test(r));
   const spf = { record: spfRecords[0] ?? null, lookups: 0, issues: [] as string[] };
   if (spfRecords.length === 0) {
     spf.issues.push("No SPF record: receiving servers can't tell which servers may send as this domain.");
@@ -134,6 +136,14 @@ export async function checkMailDomain(domain: string, resolver: DnsResolver, opt
     if (tags.pct && Number(tags.pct) < 100) dmarc.issues.push(`DMARC applies to ${tags.pct}% of mail only.`);
   }
 
+  const nothingResolved = mxRecords.length === 0 && rootTxt.length === 0 && dmarcRecords.length === 0 && dkim.found.length === 0;
+  if (nothingResolved) {
+    return {
+      domain: d, mx, spf, dkim, dmarc, verdict: "unknown",
+      summary: `Every DNS lookup for @${d} came back empty. That usually means this network blocks DNS, not that the domain is bare: re-run with DNS over HTTPS (--doh) or from another network.`,
+      gaps: ["No records could be read, so nothing was verified."],
+    };
+  }
   const spfBroken = !spf.record || spf.issues.some((i) => /more than one|\+all/.test(i));
   const verdict: MailDomainReport["verdict"] =
     spfBroken || !dmarc.record ? "unprotected"

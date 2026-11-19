@@ -170,8 +170,18 @@ export interface PageAudit {
 
 const CONSENT_WORDING = /consent|privacy|personal data|data protection|PDPL|أوافق|موافق|موافقة|الخصوصية|البيانات الشخصية|حماية البيانات/i;
 
+/** Numbers on a web page that are interface, not claims: slide counters ("1 / 5"), section numbers ("01"), sizes. */
+const UI_NUMBERS = [
+  /(?<!\d)\d{1,2}\s*\/\s*\d{1,2}(?!\d)/gu,
+  /^\s*0\d(?=\s*(?:—|–|-|\.|:|$))/gmu,
+  /\d{3,4}\s?[x×]\s?\d{3,4}(?:\s?[x×]\s?\d{3,4})?/gu,
+  /#[0-9a-f]{3,8}\b/giu, // colour codes on swatches
+];
+const ERROR_PAGE = /(^|\/)(404|_?not-found)(\.html)?$/i;
+
 export interface AuditContext {
-  entity?: EntityFields;
+  /** The approved master record, or the subset of it a page is compared with. */
+  entity?: Pick<EntityFields, "trading_name_en" | "legal_name_en" | "phone_main" | "email_main" | "website">;
   brand?: BrandRules;
   figures?: ApprovedFigure[];
 }
@@ -253,8 +263,16 @@ export function auditHtml(page: { url: string; html: string; status?: number | n
   const textFindings: Finding[] = [];
   if (ctx.brand) {
     const text = visibleText(html.replace(/<form\b[\s\S]*?<\/form>/gi, " "));
+    // The title and description live in the head, but they are what search results and browser tabs show.
+    const title = decodeEntities(/<title\b[^>]*>([^<]*)<\/title>/i.exec(html)?.[1] ?? "").trim();
+    const description = tags(html, "meta").find((m) => attr(m, "name")?.toLowerCase() === "description");
+    const headCopy = [title, description ? attr(description, "content") ?? "" : ""].filter(Boolean).join("\n");
+    if (headCopy) textFindings.push(...brandCheck(headCopy, ctx.brand).map((f) => ({ ...f, quote: `${f.quote} (page title or description)` })));
     textFindings.push(...brandCheck(text, ctx.brand));
-    if (ctx.figures) textFindings.push(...checkClaims(text, { figures: ctx.figures, rules: ctx.brand, strict: true }).findings);
+    // An error page's "404" is a status, not a claim.
+    if (ctx.figures && !ERROR_PAGE.test(new URL(page.url, "https://site.invalid/").pathname)) {
+      textFindings.push(...checkClaims(text, { figures: ctx.figures, rules: ctx.brand, strict: true, extraAllow: UI_NUMBERS }).findings);
+    }
   }
 
   return {

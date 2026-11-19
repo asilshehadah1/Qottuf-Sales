@@ -52,6 +52,8 @@ export interface ClaimsOptions {
   /** Client and public material: the unit or context must match too. Internal material may match on value alone. */
   strict: boolean;
   declared?: DeclaredClaim[];
+  /** Extra patterns whose numbers aren't claims in this kind of text (e.g. slide counters on a web page). */
+  extraAllow?: RegExp[];
 }
 
 export function rulebookFigures(rules: BrandRules): ApprovedFigure[] {
@@ -82,7 +84,11 @@ export function checkClaims(text: string, options: ClaimsOptions): { findings: F
   const findings: Finding[] = [];
   const verified: VerifiedClaim[] = [];
   const sentences = splitSentences(text);
-  const allowed = allowedNumberSpans(text, options.rules);
+  const allowed = [
+    ...allowedNumberSpans(text, options.rules),
+    ...(options.extraAllow ?? []).flatMap((re) => [...text.matchAll(new RegExp(re.source, re.flags.includes("g") ? re.flags : re.flags + "g"))]
+      .map((m) => ({ start: m.index, end: m.index + m[0].length }))),
+  ];
   const mentions = findNumericMentions(text).filter(
     (m) => !allowed.some((a) => m.start >= a.start && m.start < a.end),
   );

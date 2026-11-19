@@ -20,9 +20,15 @@ describe("mail domain check", () => {
   });
 
   it("calls a domain with no SPF and no DMARC unprotected", async () => {
-    const r = await checkMailDomain("example.com", fakeDns({}));
+    const r = await checkMailDomain("example.com", fakeDns({ "example.com": ["google-site-verification=abc"] }));
     expect(r.verdict).toBe("unprotected");
     expect(r.summary).toContain("no SPF and no DMARC");
+  });
+
+  it("says it can't tell when every lookup is empty, instead of a false 'unprotected'", async () => {
+    const r = await checkMailDomain("example.com", fakeDns({}, []));
+    expect(r.verdict).toBe("unknown");
+    expect(r.summary).toContain("--doh");
   });
 
   it("does not mistake the subdomain policy for the policy (the marketing bug)", async () => {

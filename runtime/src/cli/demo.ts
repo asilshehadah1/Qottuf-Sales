@@ -16,8 +16,11 @@ import { isArabicLine, splitSentences } from "../gates/text.ts";
 import { approveEvidence, createAccount, createContact, fileEvidence } from "../ledger/repo.ts";
 import type { EvidenceInput } from "../ledger/schemas.ts";
 import { ScriptedModelClient } from "../model/client.ts";
-import { createOpportunity, decideBid, screen } from "../pipeline/engine.ts";
+import { createOpportunity, decideBid, screen, transition } from "../pipeline/engine.ts";
 import { buildBoardPack } from "../reporting/boardPack.ts";
+import type { DnsResolver } from "../deliverability/mailDomain.ts";
+import { addListing, approveEntityVersion, recordObservation } from "../entity/entity.ts";
+import { recordOwnerConsent, registerUnit } from "../installedBase/registry.ts";
 
 const here = path.dirname(fileURLToPath(import.meta.url));
 const ROOT = path.resolve(here, "../..");
@@ -117,6 +120,15 @@ async function main() {
       do_not_say: ["Any price, discount or programme date."],
       next_step_to_secure: { action: "Site walk", owner: "asil", due_in_days: 7 },
     }),
+    bilingual_editor: (_i, attempt) => ({
+      en: "Qottuf Aljazeera fitted out Example Tower, a 13-floor building for a university endowment.",
+      ar: attempt === 1
+        ? "نفّذت قطوف الجزيرة أعمال تشطيب برج المثال لصالح جهة وقفية جامعية."
+        : "نفّذت قطوف الجزيرة أعمال تشطيب برج المثال المكوّن من ١٣ طابقاً لصالح جهة وقفية جامعية.",
+      changes_to_source: ["'carried out the fit-out works of' became 'fitted out'."],
+      untransferable: [],
+      for_asil_to_check: ["«أعمال تشطيب» or «تشطيبات» for a consultant reader?"],
+    }),
   });
   const deps = { db, rules, brand, model, now };
   await enqueue(db, { artifactType: "case_study", input: { project_ref: "PRJ-903", audience: "tender" }, createdBy: "asil" });
@@ -126,6 +138,41 @@ async function main() {
   const firstRound = (await db.query<{ details: { blocking: number } }>("SELECT details FROM run_log WHERE step = 'gates round 1' LIMIT 1")).rows[0];
   line(`The case study's first draft said 14 floors; the record says 13. Gates round 1 blocked ${firstRound?.details.blocking ?? "?"} finding(s), the writer fixed it in round 2, and it passed.`);
   line(`Contact ${contact} appears to agents only as [${contact}]; the name never leaves the Ledger.`);
+
+  head("Bilingual editor (Asil edits a near-final pair, never a blank page)");
+  await enqueue(db, { artifactType: "bilingual_edit", createdBy: "asil", input: {
+    source_lang: "en", audience: "client", purpose: "prequalification pack", project_ref: "PRJ-903",
+    source_text: "Qottuf Aljazeera carried out the fit-out works of Example Tower, a 13-floor building for a university endowment.",
+  } });
+  for (const r of await runAll(deps)) line(`- ${r.workOrderId} ${r.artifactType.padEnd(14)} ${r.status}${r.note ? `: ${r.note}` : ""}`);
+  line("The first Arabic draft left out the 13 floors; the parity check caught it and the revision put it back.");
+
+  head("After-sales and public footprint (code only)");
+  const sale = await createOpportunity(engine, { motion: "elevator", title: "Villa lift (fictional)", route: "inbound_elevator", qottuf_role: "supplier_installer",
+    stage: "new", owner: "desk_lead", next_step: { action: "First call", owner: "desk_lead", due_at: hours(4) } }, "system");
+  for (const [stage, action] of [["contacted", "Verify"], ["verified", "Budget quote"], ["quoted", "Follow up"]] as const) {
+    await transition(engine, sale, stage, { actor: "desk_lead", nextStep: { action, owner: "desk_lead", due_at: hours(24) } });
+  }
+  await transition(engine, sale, "won", { actor: "desk_lead", outcome: { value_sar: 185_000 } });
+  const lift = await registerUnit(db, rules, { site: "Villa, Al Malqa (fictional)", source: "installed", installed_from_opportunity: sale,
+    handed_over_at: "2025-12-20", warranty_ends_at: "2026-12-20", next_inspection_due: "2026-12-10", origin_document: "COO-0001" }, "desk_lead");
+  await recordOwnerConsent(db, rules, lift, "2026-11-15", "desk_lead");
+  await approveEntityVersion(db, rules, brand, { fields: {
+    legal_name_en: "Qottuf Aljazeera Company L.L.C.", legal_name_ar: "شركة قطوف الجزيرة", trading_name_en: "Qottuf Aljazeera", trading_name_ar: "قطوف الجزيرة",
+    cr_number: "1010000000", phone_main: "+966 11 000 0000", email_main: "info@example.com", website: "https://www.example.com",
+  }, note: "fictional demo values" }, "asil");
+  const gbp = await addListing(db, { platform: "google_business_profile", url: "https://maps.example/qottuf", owner: "asil" }, "asil");
+  await recordObservation(db, gbp, { trading_name_en: "Qottuf Al Jazeera", phone_main: "011 999 9999" }, "asil");
+  const dns: DnsResolver = {
+    txt: async (name) => (name === "example.com" ? [["v=spf1 include:_spf.mail.example ?all"]] : name === "dkim._domainkey.example.com" ? [["v=DKIM1; p=MIIB"]] : []),
+    mx: async () => [{ exchange: "mx.example.com", priority: 10 }],
+  };
+  const page = `<html lang="en"><head><title>Qottuf Jazeera</title><meta name="viewport" content="w"></head><body>
+    <p>Thirteen years of contracting.</p><a href="tel:0119999999">Call</a><form><input name="phone"><button>Send</button></form></body></html>`;
+  await enqueue(db, { artifactType: "maintenance_renewals", createdBy: "system", input: {} });
+  await enqueue(db, { artifactType: "site_check", createdBy: "asil", input: { pages: [{ url: "https://www.example.com/", html: page }] } });
+  await enqueue(db, { artifactType: "mail_domain_check", createdBy: "asil", input: { domain: "example.com", dkim_selectors: ["dkim"] } });
+  for (const r of await runAll({ ...deps, dns })) line(`- ${r.workOrderId} ${r.artifactType.padEnd(20)} ${r.status}${r.note ? `: ${r.note}` : ""}`);
 
   head("Approval queue (nothing leaves without Asil)");
   await mkdir(OUT, { recursive: true });
@@ -139,7 +186,7 @@ async function main() {
   line(`Asil approved ${cs.artifact_id}. In Phase 1 there is no send function: approved material is used by hand.`);
 
   head("Weekly board pack");
-  const pack = await buildBoardPack({ db, rules, now });
+  const pack = await buildBoardPack({ db, rules, now, brand });
   await writeFile(path.join(OUT, "board-pack.md"), pack, { encoding: "utf-8" });
   line(pack);
 
