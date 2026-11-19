@@ -7,7 +7,7 @@
 import type { BrandRules } from "./brand.ts";
 import { allowedNumberSpans, mentionedProjects } from "./brand.ts";
 import type { Finding } from "./findings.ts";
-import { COMMITMENT_WORDS, findNumericMentions, PROMISABLE_KINDS, type NumericMention, type Unit } from "./numbers.ts";
+import { COMMITMENT_WORDS, findNumericMentions, PROMISABLE_KINDS, unitOfWord, type NumericMention, type Unit } from "./numbers.ts";
 import { pyRegex } from "./regex.ts";
 import { sentenceAt, splitSentences } from "./text.ts";
 
@@ -16,6 +16,11 @@ export interface ApprovedFigure {
   unit?: Unit | null;
   /** Python-style regex (the rulebook's format); must match within 40 characters of the number. */
   context?: string;
+  /**
+   * Units the context words name ("bed" → bed). A mention with one of these units is in context even when the
+   * context words are English only and the text is Arabic («١٠٠ سرير»).
+   */
+  contextUnits?: Unit[];
   /** For date facts: YYYY, YYYY-MM or YYYY-MM-DD. */
   date?: string;
   label: string;
@@ -50,13 +55,19 @@ export interface ClaimsOptions {
 }
 
 export function rulebookFigures(rules: BrandRules): ApprovedFigure[] {
-  return rules.verified_figures.map((f) => ({
-    value: Number(f.value),
-    ...(f.context ? { context: f.context } : {}),
-    label: f.label,
-    sourceId: f.id,
-    projectRef: f.id.startsWith("PRJ-") ? f.id : null,
-  }));
+  return rules.verified_figures.map((f) => {
+    const contextUnits = f.context
+      ? [...new Set(f.context.split("|").map((w) => unitOfWord(w.replace(/\\.|[()?*+[\]]/g, ""))).filter((u): u is Unit => u !== null))]
+      : [];
+    return {
+      value: Number(f.value),
+      ...(f.context ? { context: f.context } : {}),
+      ...(contextUnits.length ? { contextUnits } : {}),
+      label: f.label,
+      sourceId: f.id,
+      projectRef: f.id.startsWith("PRJ-") ? f.id : null,
+    };
+  });
 }
 
 function datesAgree(mention: string, figure: string): boolean {
@@ -128,7 +139,7 @@ export function checkClaims(text: string, options: ClaimsOptions): { findings: F
     const window = text.slice(Math.max(0, m.start - 40), m.end + 40);
     const inContext = candidates.filter((f) => {
       if (!unitsCompatible(m.unit, f.unit)) return false;
-      if (f.context) return contextRe(f.context).test(window);
+      if (f.context) return contextRe(f.context).test(window) || Boolean(m.unit && f.contextUnits?.includes(m.unit));
       if (f.unit) return f.unit === m.unit;
       return true;
     });

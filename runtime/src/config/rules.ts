@@ -29,6 +29,11 @@ export const BusinessRulesSchema = z.object({
     survey_hours: z.number().positive(),
   }),
   approvers: z.record(z.string(), z.array(z.string())),
+  maintenance: z.object({
+    renewal_window_days: z.number().int().positive(),
+    inspection_booking_days: z.number().int().positive(),
+    listing_recheck_days: z.number().int().positive(),
+  }),
   work_week: z.object({
     timezone_offset_minutes: z.number().int(),
     weekend_days: z.array(z.number().int().min(0).max(6)),

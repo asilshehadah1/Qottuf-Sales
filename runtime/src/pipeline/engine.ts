@@ -77,6 +77,8 @@ export interface OpportunityCreate {
   value_source?: "tender" | "estimate" | "client" | "unknown";
   dates?: Record<string, string>;
   requirements?: OpportunityFacts["requirements"];
+  /** For maintenance renewals and inspections: the lift this opportunity is about. */
+  installed_unit_id?: string;
 }
 
 const now = (deps: EngineDeps) => (deps.now ? deps.now() : new Date());
@@ -147,12 +149,12 @@ export async function createOpportunity(deps: EngineDeps, input: OpportunityCrea
     const id = (
       await q.query<{ id: string }>(
         `INSERT INTO opportunities (motion, title, account_id, route, qottuf_role, sector, service_lines, stage, owner, next_step,
-                                    value_min_sar, value_max_sar, value_source, dates, requirements)
-         VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15) RETURNING id`,
+                                    value_min_sar, value_max_sar, value_source, dates, requirements, installed_unit_id)
+         VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16) RETURNING id`,
         [input.motion, input.title, input.account_id ?? null, input.route, input.qottuf_role, input.sector ?? null,
           input.service_lines ?? [], input.stage, input.owner, JSON.stringify(next), input.value_min_sar ?? null,
           input.value_max_sar ?? null, input.value_source ?? "unknown", JSON.stringify(input.dates ?? {}),
-          JSON.stringify(input.requirements ?? {})],
+          JSON.stringify(input.requirements ?? {}), input.installed_unit_id ?? null],
       )
     ).rows[0]!.id;
     await event(q, deps, id, actor, "created", null, input.stage, { next_step: next });

@@ -44,6 +44,7 @@ export const BrandRulesSchema = z.object({
   verified_figures: z.array(
     z.object({ value: z.string(), context: z.string().optional(), label: z.string(), id: z.string() }),
   ),
+  glossary: z.array(z.object({ en: z.string(), ar: z.string(), notes: z.string().optional() })).default([]),
   project_mentions: z.record(z.string(), z.string()),
 });
 export type BrandRules = z.infer<typeof BrandRulesSchema>;

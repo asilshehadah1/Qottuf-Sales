@@ -43,6 +43,12 @@ describe("claims gate: context and attribution", () => {
     expect(internal.findings.map((f) => `${f.severity}:${f.rule}`)).toEqual(["signal:claims.value_only_match"]);
   });
 
+  it("verifies an Arabic figure whose rulebook context words are English only, by its unit", () => {
+    // The fixture's 120-bed figure has context "bed": the Arabic «سريراً» must still match it.
+    expect(failRules("نفّذت قطوف الجزيرة تشطيبات مستشفى المثال بسعة ١٢٠ سريراً.")).toEqual([]);
+    expect(failRules("بسعة ١٢٠ مقعداً في مستشفى المثال.")).toEqual(["claims.unverified_number"]);
+  });
+
   it("matches dates against dated records", () => {
     expect(failRules("Example Tower was completed in March 2019.")).toEqual([]);
     expect(failRules("Example Tower was completed in March 2020.")).toEqual(["claims.unverified_number"]);

@@ -10,8 +10,11 @@ import {
   ModelOutputError, ModelRefusalError, ModelTransientError, ModelTruncatedError, ModelUnavailableError,
   type ModelClient, type ModelResult,
 } from "../model/client.ts";
+import type { DnsResolver } from "../deliverability/mailDomain.ts";
+import { bilingualPipeline } from "../pipelines/bilingual.ts";
 import { caseStudyPipeline } from "../pipelines/caseStudy.ts";
 import type { Pipeline, PipelineContext, RunStep } from "../pipelines/context.ts";
+import { mailDomainPipeline, renewalsPipeline, siteCheckPipeline } from "../pipelines/footprint.ts";
 import { meetingBriefPipeline, meetingDebriefPipeline } from "../pipelines/meetings.ts";
 import { prequalPackPipeline } from "../pipelines/prequalPack.ts";
 import { buildBoardPack } from "../reporting/boardPack.ts";
@@ -20,7 +23,7 @@ import { submitArtifact } from "../approvals/queue.ts";
 export class BudgetExceededError extends Error {}
 
 const boardPackPipeline: Pipeline = async (ctx) => {
-  const text = await buildBoardPack({ db: ctx.db, rules: ctx.rules, now: ctx.now });
+  const text = await buildBoardPack({ db: ctx.db, rules: ctx.rules, now: ctx.now, brand: ctx.brand });
   const artifactId = await submitArtifact(ctx.db, {
     workOrderId: ctx.workOrderId, artifactType: "board_pack", title: `Board pack ${ctx.now().toISOString().slice(0, 10)}`,
     audience: "asil", content: { kind: "board_pack" }, renderedEn: text, evidenceTierMax: "tender",
@@ -36,6 +39,10 @@ export const PIPELINES: Record<string, Pipeline> = {
   meeting_debrief: meetingDebriefPipeline,
   prequal_pack: prequalPackPipeline,
   board_pack: boardPackPipeline,
+  bilingual_edit: bilingualPipeline,
+  site_check: siteCheckPipeline,
+  mail_domain_check: mailDomainPipeline,
+  maintenance_renewals: renewalsPipeline,
 };
 
 /** Token budgets per work order, sized to the artifact (spec §6 S1-03). Code-only pipelines use none. */
@@ -43,8 +50,12 @@ export const DEFAULT_BUDGETS: Record<string, number> = {
   case_study: 150_000,
   meeting_brief: 60_000,
   meeting_debrief: 40_000,
+  bilingual_edit: 80_000,
   prequal_pack: 1,
   board_pack: 1,
+  site_check: 1,
+  mail_domain_check: 1,
+  maintenance_renewals: 1,
 };
 
 export interface DispatcherDeps {
@@ -54,6 +65,9 @@ export interface DispatcherDeps {
   model: ModelClient | null;
   now?: () => Date;
   publicNumbers?: string[];
+  /** Network for the code-only checks; leave out where the deployment has none. */
+  fetchFn?: typeof fetch;
+  dns?: DnsResolver;
 }
 
 export async function enqueue(
@@ -129,6 +143,8 @@ export async function runNext(deps: DispatcherDeps): Promise<RunResult | null> {
     now,
     workOrderId: wo.id,
     publicNumbers: deps.publicNumbers ?? [],
+    ...(deps.fetchFn ? { fetchFn: deps.fetchFn } : {}),
+    ...(deps.dns ? { dns: deps.dns } : {}),
     step: (s) => logStep(deps.db, wo.id, s),
     callModel: async <T>(agent: string, promptVersion: string, fn: (m: ModelClient) => Promise<ModelResult<T>>) => {
       if (!deps.model) {

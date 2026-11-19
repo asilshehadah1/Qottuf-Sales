@@ -4,7 +4,7 @@
 
 import { audit } from "../audit/audit.ts";
 import { canApprove, type BusinessRules } from "../config/rules.ts";
-import type { Db, Queryable } from "../db/db.ts";
+import { dateText, type Db, type Queryable } from "../db/db.ts";
 import type { ApprovedFigure } from "../gates/claims.ts";
 import type { KnownPerson } from "../gates/pii.ts";
 import type { Unit } from "../gates/numbers.ts";
@@ -127,7 +127,7 @@ export interface EvidenceReadOptions {
 }
 
 function rowToEvidence(r: Record<string, unknown>): EvidenceRecord {
-  const d = (v: unknown) => (v instanceof Date ? v.toISOString().slice(0, 10) : (v as string | null) ?? null);
+  const d = dateText;
   return {
     id: r.id as string,
     type: r.type as EvidenceRecord["type"],

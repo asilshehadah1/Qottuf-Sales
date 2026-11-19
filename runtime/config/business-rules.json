@@ -41,7 +41,14 @@
     "S-G3": ["asil"],
     "S-G5": ["asil", "bid_coordinator"],
     "S-G6": ["asil"],
-    "artifact": ["asil"]
+    "artifact": ["asil"],
+    "entity": ["asil"],
+    "installed_base": ["asil", "desk_lead", "maintenance_supervisor"]
+  },
+  "maintenance": {
+    "renewal_window_days": 60,
+    "inspection_booking_days": 30,
+    "listing_recheck_days": 90
   },
   "work_week": {
     "timezone_offset_minutes": 180,

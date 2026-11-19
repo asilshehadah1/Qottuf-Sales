@@ -67,6 +67,12 @@ describe("Arabic", () => {
     expect(one("مبنى من طابقين")).toMatchObject({ value: 2, unit: "floor" });
   });
 
+  it("reads a number with an Arabic prefix written onto it («و٦» is 'and 6')", () => {
+    const m = findNumericMentions("برج من ١٣ طابقاً و٦ مصاعد");
+    expect(m.map((x) => [x.value, x.unit])).toEqual([[13, "floor"], [6, "elevator"]]);
+    expect(findNumericMentions("CO2 levels and M2 units")).toEqual([]);
+  });
+
   it("does not read Monday as two", () => {
     expect(findNumericMentions("الاجتماع يوم الاثنين القادم")).toHaveLength(0);
   });

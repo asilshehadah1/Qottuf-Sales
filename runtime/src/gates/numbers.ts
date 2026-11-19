@@ -307,6 +307,15 @@ function pad2(n: number): string {
   return String(n).padStart(2, "0");
 }
 
+/** The unit a single word names ("bed", «مصاعد», "m²"), or null. */
+export function unitOfWord(word: string): Unit | null {
+  const w = word.trim();
+  for (const [re, unit] of [...EN_UNITS, ...AR_UNITS]) {
+    if (re.test(w)) return unit;
+  }
+  return null;
+}
+
 function detectUnit(after: string, before: string): Unit | null {
   // Currency is often written before the number: "SAR 1,250,000", "ر.س ١٬٢٥٠٬٠٠٠".
   if (/(?:\bSAR|\bSR|ر\.?\s?س\.?|﷼)\s*$/iu.test(before)) return "sar";
@@ -403,7 +412,10 @@ export function findNumericMentions(text: string): NumericMention[] {
 
   // 3. Ranges: "10-12 weeks", "10 to 12", "من ١٠ إلى ١٢".
   const NUM = "\\d(?:\\d|[,٬،.٫](?=\\d))*";
-  const rangeRe = new RegExp(`(?<![\\p{L}\\p{N}.,٬٫])(${NUM})\\s*(?:-|–|—|to|إلى|الى|حتى)\\s*(${NUM})(?![\\p{N}])`, "giu");
+  // A number starts a token unless a letter or digit is glued to it ("M2", "CO2"), except the Arabic prefixes
+  // و ب ل ف ك written directly onto a number: «و٦ مصاعد» is "and 6 lifts".
+  const START = "(?:(?<![\\p{L}\\p{N}_.,٬٫])|(?<=(?:^|[^\\p{L}\\p{N}_])[وبلفك]))";
+  const rangeRe = new RegExp(`${START}(${NUM})\\s*(?:-|–|—|to|إلى|الى|حتى)\\s*(${NUM})(?![\\p{N}])`, "giu");
   for (const m of t.matchAll(rangeRe)) {
     // "14-storey" is not a range; a range needs a number on both sides.
     const a = parseDigitToken(m[1]!);
@@ -417,7 +429,7 @@ export function findNumericMentions(text: string): NumericMention[] {
 
   // 4. Digit tokens, with an optional multiplier word and percent sign.
   const digitRe = new RegExp(
-    `(?<![\\p{L}\\p{N}_.,٬٫])(${NUM})(?:\\s*(million|billion|thousand|ألف|الف|مليون|مليار)(?![\\p{L}]))?\\s*([%٪])?`,
+    `${START}(${NUM})(?:\\s*(million|billion|thousand|ألف|الف|مليون|مليار)(?![\\p{L}]))?\\s*([%٪])?`,
     "giu",
   );
   for (const m of t.matchAll(digitRe)) {
