@@ -14,10 +14,13 @@ DIR="${QOTTUF_BOARD_HOME:-$HOME/Qottuf-Sales}"
 say() { printf '\n\033[1m%s\033[0m\n' "$*"; }
 note() { printf '%s\n' "$*"; }
 fail() { printf '\n\033[31m%s\033[0m\n' "$*" >&2; exit 1; }
-ask() { # ask "question" -> reply in $REPLY; empty when there's no terminal to ask on
+# Questions are read from the terminal itself, so they work under bash <(curl …). With no terminal, they're skipped.
+has_tty() { (exec </dev/tty) 2>/dev/null; }
+ask() { # ask "question" -> reply in $REPLY
   REPLY=""
+  has_tty || return 0
   printf '%s' "$1"
-  IFS= read -r REPLY < /dev/tty 2>/dev/null || REPLY=""
+  IFS= read -r REPLY 2>/dev/null </dev/tty || REPLY=""
 }
 
 # ---------------------------------------------------------------- 1. git and Node 22.18 or newer
@@ -63,7 +66,7 @@ fi
 cd "$DIR/runtime"
 
 say "Installing the board's packages (a minute or two the first time)…"
-npm ci --no-audit --no-fund --loglevel=error
+npm ci --no-audit --no-fund --no-update-notifier --loglevel=error
 
 # ---------------------------------------------------------------- 3. settings in runtime/.env: created once, never overwritten
 if [ ! -f .env ]; then
@@ -73,11 +76,13 @@ if [ ! -f .env ]; then
 fi
 
 current_key=$(grep -E '^ANTHROPIC_API_KEY=' .env | head -1 | cut -d= -f2- | tr -d '"' || true)
-if [ -z "$current_key" ]; then
+if [ -z "$current_key" ] && ! has_tty; then
+  note "No API key yet: add ANTHROPIC_API_KEY to $DIR/runtime/.env to turn the writing agents on."
+elif [ -z "$current_key" ]; then
   printf '\nThe writing agents (case studies, briefs, LinkedIn posts, elevator ads, web pages) run on your Anthropic API account.\n'
   printf 'Paste your API key from console.anthropic.com, or press Enter to skip (you can add it to runtime/.env later): '
   key=""
-  IFS= read -rs key < /dev/tty 2>/dev/null || key=""
+  IFS= read -rs key 2>/dev/null </dev/tty || key=""
   echo
   if [ -n "$key" ]; then
     case "$key" in sk-ant-*) ;; *) note "That doesn't look like an Anthropic key (they start with sk-ant-). Saving it anyway; check it on the board's Connections page." ;; esac
