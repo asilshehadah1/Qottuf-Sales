@@ -7,7 +7,7 @@ const row = (name, state, tone, body) => `<div class="panel panel-pad stack"><di
 
 export function render(c) {
   const st = c.data.status;
-  return `<div class="page-head"><div><h1>Connections</h1><p>The board runs on this computer and listens only to it. These are the services it reaches. Settings live in <span class="mono">runtime/.env</span>; change them and restart the board.</p></div></div>
+  return `<div class="page-head"><div><h1>Connections</h1><p>The board runs on this computer and listens only to it. These are the services it reaches. Settings live in <span class="mono">runtime/.env</span>; change them and restart the board (in the desktop app: File, Restart the Board).</p></div></div>
   <div class="grid cols-2">
     ${row("The writers: Anthropic API", st.model.on ? (st.model.kind === "anthropic" ? "on" : "stand-in") : "off", st.model.on && st.model.kind === "anthropic" ? "ok" : "warn", `<p class="m0">${h(st.model.note)}</p>
       <p class="small muted m0">Agents that write (case studies, briefs, debriefs, bilingual edits, LinkedIn posts, elevator content, web pages) call Claude through your Anthropic API account and are billed to it. Each run has a token budget; the board shows the tokens each run used. Personal data is removed before anything is sent. Code agents (website and mail checks, the board pack, renewals) never call a model.</p>

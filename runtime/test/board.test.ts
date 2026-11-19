@@ -1,4 +1,4 @@
-import { request } from "node:http";
+import { request, type IncomingMessage } from "node:http";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
@@ -196,6 +196,35 @@ describe("the board's server", () => {
     } finally {
       await off.close();
       await env2.db.close();
+    }
+  });
+
+  it("stops while a page holds the live event stream open", async () => {
+    const env2 = await testEnv(new Date().toISOString());
+    const b = await startBoard({ port: 0, db: env2.db, env: { QOTTUF_BRAND_DIR: BRAND_DIR, HOME: "/nonexistent" }, fetchFn: fakeFetch, worker: false, quiet: true });
+    try {
+      const port = new URL(b.url).port;
+      const stream = await new Promise<IncomingMessage>((resolve, reject) => {
+        request({ host: "127.0.0.1", port, path: "/api/events", headers: { host: `localhost:${port}` } }, resolve).on("error", reject).end();
+      });
+      expect(stream.statusCode).toBe(200);
+      stream.on("error", () => {}); // the board ends it
+      const stopped = await Promise.race([b.close().then(() => true), new Promise<boolean>((r) => setTimeout(() => r(false), 3000))]);
+      expect(stopped).toBe(true);
+    } finally {
+      await env2.db.close();
+    }
+  });
+
+  it("serves the manifest and icons the browser's install option and the desktop app use", async () => {
+    const m = await fetch(`${board.url}/manifest.webmanifest`);
+    expect(m.headers.get("content-type")).toBe("application/manifest+json");
+    const manifest = (await m.json()) as { name: string; start_url: string; icons: { src: string; sizes: string }[] };
+    expect(manifest.name).toBe("Qottuf BD Board");
+    expect(manifest.icons.map((i) => i.sizes)).toEqual(["192x192", "512x512"]);
+    for (const src of [...manifest.icons.map((i) => i.src), "favicon.png", "apple-touch-icon.png"]) {
+      const r = await fetch(`${board.url}/${src}`);
+      expect([src, r.status, r.headers.get("content-type")]).toEqual([src, 200, "image/png"]);
     }
   });
 });

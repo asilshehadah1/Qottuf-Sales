@@ -197,8 +197,11 @@ export async function startBoard(o: BoardOptions = {}): Promise<Board> {
     server, deps, url, work,
     close: async () => {
       for (const t of timers) clearInterval(t);
-      await new Promise<void>((resolve) => server.close(() => resolve()));
-      server.closeAllConnections?.();
+      // close() waits for every connection to end, and an open board page holds an event stream that never does:
+      // drop the connections first, or the board can't stop while a page is open.
+      const closed = new Promise<void>((resolve) => server.close(() => resolve()));
+      server.closeAllConnections();
+      await closed;
       if (!o.db) await db.close();
     },
   };

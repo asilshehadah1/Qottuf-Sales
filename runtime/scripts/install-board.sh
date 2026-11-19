@@ -1,5 +1,6 @@
 #!/bin/bash
-# Installs the Qottuf BD Board on this computer (macOS; Linux works too), adds a `qottuf-board` command, and starts it.
+# Installs the Qottuf BD Board on this computer and opens it. On a Mac it builds the Qottuf Board desktop app
+# (~/Applications, with a link on the Desktop); everywhere it adds a `qottuf-board` command. Linux works too.
 #
 #   bash <(curl -fsSL https://raw.githubusercontent.com/asilshehadah1/Qottuf-Sales/refs/heads/claude/hopeful-archimedes-6kncjp/runtime/scripts/install-board.sh)
 #
@@ -65,6 +66,13 @@ else
 fi
 cd "$DIR/runtime"
 
+# A running board would keep the old code, and npm ci swaps its packages out from under it: stop it first.
+port=$(grep -E '^BOARD_PORT=' .env 2>/dev/null | head -1 | cut -d= -f2 | tr -d '"' || true)
+if curl -fsS -o /dev/null --max-time 3 "http://localhost:${port:-4300}/api/status" 2>/dev/null; then
+  say "Stopping the running board for the update…"
+  bash scripts/board.sh stop || fail "Quit the board first (Qottuf Board, then Quit; or Control-C where it runs), then run this again."
+fi
+
 say "Installing the board's packages (a minute or two the first time)…"
 npm ci --no-audit --no-fund --no-update-notifier --loglevel=error
 
@@ -120,13 +128,28 @@ if ! grep -q 'alias qottuf-board=' "$rc" 2>/dev/null; then
   printf '\n# Qottuf BD Board (added by its installer)\nalias qottuf-board="%s"\n' "$launcher" >> "$rc"
   note "Added the qottuf-board command to $rc"
 fi
+
+# ---------------------------------------------------------------- 5. the desktop app (macOS)
+app=""
 if [ "$(uname)" = "Darwin" ]; then
-  printf '#!/bin/bash\nexec "%s"\n' "$launcher" > "$DIR/Qottuf Board.command"
-  chmod +x "$DIR/Qottuf Board.command"
-  note "Double-click launcher: $DIR/Qottuf Board.command (drag it to the Dock if you like)"
+  say "Making the Qottuf Board app…"
+  if bash "$DIR/runtime/desktop/build-mac-app.sh"; then
+    app="${QOTTUF_APP_DIR:-$HOME/Applications}/Qottuf Board.app"
+  else
+    printf '#!/bin/bash\nexec "%s"\n' "$launcher" > "$DIR/Qottuf Board.command"
+    chmod +x "$DIR/Qottuf Board.command"
+    note "The app couldn't be made. Double-click this instead: $DIR/Qottuf Board.command"
+  fi
 fi
 
-say "Installed. From now on, open Terminal and type:  qottuf-board"
+say "Installed."
+if [ -n "$app" ]; then note "Open Qottuf Board from your Desktop, Launchpad or Spotlight."; fi
+note "From Terminal:  qottuf-board  starts it,  qottuf-board stop  stops it."
 [ -n "${QOTTUF_INSTALL_NO_START:-}" ] && exit 0
+if [ -n "$app" ]; then
+  say "Opening Qottuf Board…"
+  open "$app"
+  exit 0
+fi
 say "Starting the board…"
 exec "$launcher"
