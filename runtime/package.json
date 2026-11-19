@@ -1,0 +1,29 @@
+{
+  "name": "qottuf-sales-runtime",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Qottuf Business Development runtime, Phase 1: one Ledger, the Pipeline Engine, the gates and the first agents. Nothing is ever sent or published: every output ends as a draft in Asil's approval queue.",
+  "type": "module",
+  "engines": {
+    "node": ">=22.18"
+  },
+  "scripts": {
+    "typecheck": "tsc -p tsconfig.json",
+    "test": "vitest run",
+    "demo": "tsx src/cli/demo.ts",
+    "queue": "tsx src/cli/queue.ts"
+  },
+  "dependencies": {
+    "@anthropic-ai/sdk": "1.10.0",
+    "@electric-sql/pglite": "0.5.16",
+    "pg": "8.23.1",
+    "zod": "4.6.7"
+  },
+  "devDependencies": {
+    "@types/node": "22.20.5",
+    "@types/pg": "8.23.1",
+    "tsx": "4.23.15",
+    "typescript": "6.0.3",
+    "vitest": "5.1.1"
+  }
+}
