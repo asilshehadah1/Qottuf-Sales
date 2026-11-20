@@ -41,7 +41,7 @@ export function render({ data }) {
     ${kpi("pipeline", "Contracting", `${b.pipeline.contractingOpen}`, b.pipeline.contractingMaxSar ? `open · up to SAR ${sarM(b.pipeline.contractingMaxSar)}` : "open opportunities")}
     ${kpi("elevators", "Elevators (CRM)", `${crm.open}`, b.crm.syncedAt ? `open · ${crm.newLast7Days} new this week` : "not connected yet", late > 0, late ? `${late} late` : "")}
     ${kpi("website", "Website", met == null ? "–" : `${met}<small> of 4</small>`, met == null ? "not checked yet" : `G0 bar · checked ${ago(b.website.checked_at)}`, met != null && met < 4)}
-    ${kpi("website", "Quote inbox", b.mail ? h(words(b.mail.verdict)) : "–", b.mail ? (b.mail.verdict === "unknown" ? "the DNS lookups failed; check again" : `@${st.website.mailDomain}`) : "not checked yet", Boolean(b.mail) && ["unprotected", "at_risk"].includes(b.mail.verdict))}
+    ${kpi("website", "Quote inbox", b.mail ? `<span class="word">${h(words(b.mail.verdict))}</span>` : "–", b.mail ? (b.mail.verdict === "unknown" ? "the DNS lookups failed; check again" : `@${st.website.mailDomain}`) : "not checked yet", Boolean(b.mail) && ["unprotected", "at_risk"].includes(b.mail.verdict))}
   </div>
   <div class="grid cols-2">
     <section><h2>Needs you</h2><div class="panel">${items.length ? `<div class="list">${items.map((i) => `
