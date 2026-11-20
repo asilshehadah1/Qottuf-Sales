@@ -15,7 +15,7 @@ DIR="${QOTTUF_BOARD_HOME:-$HOME/Qottuf-Sales}"
 say() { printf '\n\033[1m%s\033[0m\n' "$*"; }
 note() { printf '%s\n' "$*"; }
 fail() { printf '\n\033[31m%s\033[0m\n' "$*" >&2; exit 1; }
-# Questions are read from the terminal itself, so they work under bash <(curl …). With no terminal, they're skipped.
+# Questions are read from the terminal itself, so they work under bash <(curl ...). With no terminal, they're skipped.
 has_tty() { (exec </dev/tty) 2>/dev/null; }
 ask() { # ask "question" -> reply in $REPLY
   REPLY=""
@@ -25,7 +25,17 @@ ask() { # ask "question" -> reply in $REPLY
 }
 
 # ---------------------------------------------------------------- 1. git and Node 22.18 or newer
-command -v git >/dev/null 2>&1 || fail "git isn't installed. Run:  xcode-select --install   then run this installer again."
+# On a Mac, a `git` command exists even without Apple's command line tools: a stand-in that only offers to install
+# them. So run it rather than look for it.
+if ! git --version >/dev/null 2>&1; then
+  if [ "$(uname)" = "Darwin" ]; then
+    fail "This Mac needs Apple's command line tools first: they include git, and the app is built with them.
+A window may have opened offering to install them. Click Install and wait until it finishes (a few minutes).
+If no window opened, run:  xcode-select --install
+Then run this installer again."
+  fi
+  fail "git isn't installed. Install it, then run this installer again."
+fi
 
 node_ok() {
   command -v node >/dev/null 2>&1 || return 1
@@ -41,7 +51,7 @@ if ! node_ok; then
       ask "Node $(node -v) is too old for the board (it needs 22.18 or newer). Upgrade it with Homebrew now? [y/N] "
       case "$REPLY" in [yY]*) brew upgrade node || brew install node ;; *) fail "Upgrade Node (brew upgrade node, or the LTS from https://nodejs.org), then run this again." ;; esac
     else
-      say "Installing Node with Homebrew…"
+      say "Installing Node with Homebrew..."
       brew install node
     fi
     hash -r
@@ -54,14 +64,14 @@ note "Node $(node -v) at $(command -v node)"
 
 # ---------------------------------------------------------------- 2. the code: download, or update an existing copy
 if [ -d "$DIR/.git" ]; then
-  say "Updating $DIR…"
+  say "Updating $DIR..."
   git -C "$DIR" fetch --quiet origin "$BRANCH"
   git -C "$DIR" checkout --quiet "$BRANCH" 2>/dev/null || git -C "$DIR" checkout --quiet -b "$BRANCH" "origin/$BRANCH"
   git -C "$DIR" merge --ff-only --quiet "origin/$BRANCH" || fail "$DIR has local changes that block the update. Move the folder aside and run this again."
 elif [ -e "$DIR" ]; then
-  fail "$DIR already exists and isn't a copy of the board. Move it aside, or install elsewhere with:  QOTTUF_BOARD_HOME=/some/other/folder bash <(curl …)"
+  fail "$DIR already exists and isn't a copy of the board. Move it aside, or install elsewhere with:  QOTTUF_BOARD_HOME=/some/other/folder bash <(curl ...)"
 else
-  say "Downloading the board to $DIR…"
+  say "Downloading the board to $DIR..."
   git clone --quiet --branch "$BRANCH" --single-branch "$REPO_URL" "$DIR"
 fi
 cd "$DIR/runtime"
@@ -69,11 +79,11 @@ cd "$DIR/runtime"
 # A running board would keep the old code, and npm ci swaps its packages out from under it: stop it first.
 port=$(grep -E '^BOARD_PORT=' .env 2>/dev/null | head -1 | cut -d= -f2 | tr -d '"' || true)
 if curl -fsS -o /dev/null --max-time 3 "http://localhost:${port:-4300}/api/status" 2>/dev/null; then
-  say "Stopping the running board for the update…"
+  say "Stopping the running board for the update..."
   bash scripts/board.sh stop || fail "Quit the board first (Qottuf Board, then Quit; or Control-C where it runs), then run this again."
 fi
 
-say "Installing the board's packages (a minute or two the first time)…"
+say "Installing the board's packages (a minute or two the first time)..."
 npm ci --no-audit --no-fund --no-update-notifier --loglevel=error
 
 # ---------------------------------------------------------------- 3. settings in runtime/.env: created once, never overwritten
@@ -132,7 +142,7 @@ fi
 # ---------------------------------------------------------------- 5. the desktop app (macOS)
 app=""
 if [ "$(uname)" = "Darwin" ]; then
-  say "Making the Qottuf Board app…"
+  say "Making the Qottuf Board app..."
   if bash "$DIR/runtime/desktop/build-mac-app.sh"; then
     app="${QOTTUF_APP_DIR:-$HOME/Applications}/Qottuf Board.app"
   else
@@ -147,9 +157,9 @@ if [ -n "$app" ]; then note "Open Qottuf Board from your Desktop, Launchpad or S
 note "From Terminal:  qottuf-board  starts it,  qottuf-board stop  stops it."
 [ -n "${QOTTUF_INSTALL_NO_START:-}" ] && exit 0
 if [ -n "$app" ]; then
-  say "Opening Qottuf Board…"
+  say "Opening Qottuf Board..."
   open "$app"
   exit 0
 fi
-say "Starting the board…"
+say "Starting the board..."
 exec "$launcher"

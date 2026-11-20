@@ -9,7 +9,7 @@ The agentic workflow from `qottuf-business-development-department-v1.md`, built.
 ```bash
 cd runtime
 npm install
-npm test        # 140 tests on a real Postgres engine running in-process (PGlite)
+npm test        # 144 tests on a real Postgres engine running in-process (PGlite)
 npm run demo    # the whole workflow on fictional data, no setup, no network
 npm run board   # the board on this computer: http://localhost:4300
 ```
@@ -202,7 +202,7 @@ Elevators: the engine already runs the CRM's pipeline stages and SLAs, and the r
 
 ## What has run, and what hasn't
 
-- All 140 tests pass and the type check is clean.
+- All 144 tests pass and the type check is clean, on Node 22 and on Node 26.13.1 (the version on Asil's Mac). On Node 26 the board also starts, and stops with a page open.
 - **The board, checked in a browser:** 18 checks, all passing, on 19 November. The board ran here with:
   - the real brand skill;
   - the live site's pages saved that morning;

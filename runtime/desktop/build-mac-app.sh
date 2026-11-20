@@ -29,7 +29,7 @@ mkdir -p "$bundle/Contents/MacOS" "$bundle/Contents/Resources"
 
 # ---------------------------------------------------------------- 1. the program
 # Its own window when this Mac can compile it; otherwise a launcher that opens the board in the browser.
-note "Building the app (up to a minute)…"
+note "Building the app (up to a minute)..."
 kind=window
 if ! xcrun --sdk macosx swiftc -O -parse-as-library -o "$bundle/Contents/MacOS/$NAME" "$HERE/QottufBoard.swift" >> "$BUILD_LOG" 2>&1; then
   kind=browser
