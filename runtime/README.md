@@ -9,14 +9,14 @@ The agentic workflow from `qottuf-business-development-department-v1.md`, built.
 ```bash
 cd runtime
 npm install
-npm test        # 144 tests on a real Postgres engine running in-process (PGlite)
+npm test        # 149 tests on a real Postgres engine running in-process (PGlite)
 npm run demo    # the whole workflow on fictional data, no setup, no network
 npm run board   # the board on this computer: http://localhost:4300
 ```
 
 ## The board, on your computer
 
-**Install on a Mac, in one line** (Terminal). It downloads the code to `~/Qottuf-Sales`, installs Node with Homebrew if it's missing, asks for the Anthropic API key and finds the brand skill. Then it builds **Qottuf Board**, a Mac app, and opens it. Run it again to update; it keeps `.env` and the data:
+**Install on a Mac, in one line** (Terminal). It downloads the code to `~/Qottuf-Sales`, installs Node with Homebrew if it's missing, and sets the writing agents up on your Claude plan (installing Claude Code and signing it in to your Claude account, if needed; an API key is the alternative). It finds the brand skill, then builds **Qottuf Board**, a Mac app, and opens it. Run it again to update; it keeps `.env` and the data:
 
 ```bash
 bash <(curl -fsSL https://raw.githubusercontent.com/asilshehadah1/Qottuf-Sales/refs/heads/claude/hopeful-archimedes-6kncjp/runtime/scripts/install-board.sh)
@@ -46,7 +46,8 @@ It is one process on your computer:
 
 | Setting | What it does |
 |---|---|
-| `QOTTUF_MODEL_CALLS=enabled` and `ANTHROPIC_API_KEY` | Turn the writers on. They run on your Anthropic API account and are billed per use, not to your Claude plan. Each run has a token budget, and the board shows the tokens each run used. Without a key, the code agents still run: the website and mail checks, the board pack and the renewals |
+| `QOTTUF_MODEL_CALLS=claude-plan` | Turn the writers on, on your Claude plan. Claude Code on this computer, signed in to your own Claude account, runs each call, so there's no API bill; the installer installs Claude Code and signs it in. It is for your own work: a colleague signs in to Claude Code on their own computer with their own account. `QOTTUF_CLAUDE_BIN` says where Claude Code is if the board doesn't find it, and `QOTTUF_CLAUDE_MODEL` picks a model (unset, the plan's default) |
+| `QOTTUF_MODEL_CALLS=enabled` and `ANTHROPIC_API_KEY` | Or run the writers on an Anthropic API key, billed per use. Either way, each run has a token budget and the board shows the tokens it used. With the writers off, the code agents still run: the website and mail checks, the board pack and the renewals |
 | `QOTTUF_BRAND_DIR` | The qottuf-brand skill's folder, if the board doesn't find it in `~/.claude/skills`. The rulebook and the fact base are read from it at start and never copied into git |
 | `WEBSITE_PAGES`, `MAIL_DOMAIN` | The pages the site check reads (default: the home page and both configurators on qottuf.com) and the quote inbox's domain |
 
@@ -202,7 +203,7 @@ Elevators: the engine already runs the CRM's pipeline stages and SLAs, and the r
 
 ## What has run, and what hasn't
 
-- All 144 tests pass and the type check is clean, on Node 22 and on Node 26.13.1 (the version on Asil's Mac). On Node 26 the board also starts, and stops with a page open.
+- All 149 tests pass and the type check is clean, on Node 22 and on Node 26.13.1 (the version on Asil's Mac). On Node 26 the board also starts, and stops with a page open.
 - **The board, checked in a browser:** 18 checks, all passing, on 19 November. The board ran here with:
   - the real brand skill;
   - the live site's pages saved that morning;
@@ -215,16 +216,17 @@ Elevators: the engine already runs the CRM's pipeline stages and SLAs, and the r
   - its own pages and its link handling were checked in Chromium;
   - the build script and the browser fallback ran with stand-ins for the macOS tools.
 - **Not run from the board yet:**
-  - a real Claude call, which needs an API key;
   - a sign-in to the real CRM, which needs an account;
   - a fetch of the live site. This container has no direct internet, so the site check read the saved pages; on your computer it reads the live ones.
 - **Real checks, 19 November 2026:**
   - **The site checker on the live website branch** (`content-update-aug2026`, 5 pages): 35 failures, and 1 of the 4 G0 bar items met (working contacts).
   - **The mail check on qottuf.com: unprotected.** There is no DMARC record and the SPF record ends in `?all`; MX and a DKIM key are present.
-- **No real call to Claude has been made.**
-  - The server's model client was tested against the SDK's real request builder with a fake network, and the demo uses scripted outputs.
-  - Server model calls stay off until Asil decides hosting and data residency (decision #7, due 17 December).
-  - The console is the exception: it calls Claude on Asil's own plan once Asil allows it in the browser.
+- **One real Claude run, 21 November 2026, on a Claude plan through Claude Code.**
+  - The setup: Claude Code 2.1.330, signed in to a Claude account; the plan's default model, Opus 5.5.
+  - The run: the LinkedIn writer for PRJ-003, in 34 seconds, using 12,524 of its 80,000 tokens.
+  - The result: the checks passed, with the 100 beds, 16,000 m² and 8,000 m² verified in both languages, and 5 points for Asil to check.
+  - The API-key client is still tested only against the SDK's request builder with a fake network, and the demo uses scripted outputs.
+  - The console calls Claude on Asil's plan once Asil allows it in the browser.
 - **No golden sets yet** (spec §13.4), so the agents can't be measured and no agent should go live.
 - **Known limits:**
   - The PII guard misses a bare name with no title that isn't in the contact registry.
@@ -252,7 +254,11 @@ Real evidence goes into the database (or the console's store on claude.ai), and 
 
 ## Needed from Asil
 
-1. **An Anthropic API key, and the decision to turn the writers on.** The board runs on your computer, so its data stays there; model calls go to Anthropic's API and are billed per use. Put the key in `runtime/.env`; data residency for any later hosting is still decision #7 (by 17 December).
+1. **Claude Code on your Mac, signed in to your Claude account,** so the writers run on your plan. The installer offers both steps. Any plan with Claude Code works: Pro, Max, Ultra, Team or Enterprise (the free plan has none).
+   - It is for your own work; colleagues sign in to Claude Code with their own accounts.
+   - On a Pro or Max plan, check Claude's privacy settings (whether chats and coding sessions help train Claude) before company material goes through.
+   - An API key remains the alternative.
+   - Data residency for any later hosting is still decision #7 (by 17 December).
 2. **Sign off `config/business-rules.json`.** It says `PENDING: Asil`.
 3. **The proof documents:** contract value, dates and completion certificate for at least three projects.
 4. **The master company record:** CR, VAT, phone, email, website, address. It's proposed on the board's Website page (and in the console's Footprint), with questions to settle before Asil approves it:

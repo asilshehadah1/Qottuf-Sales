@@ -18,6 +18,7 @@ import { runNext, type DispatcherDeps } from "../dispatcher/dispatcher.ts";
 import type { BrandRules } from "../gates/brand.ts";
 import { loadBrandRules } from "../gates/brandLoader.ts";
 import { AnthropicModelClient } from "../model/client.ts";
+import { ClaudeCodeModelClient, claudeCodeStatus, findClaudeBin, type RunCommand } from "../model/claudeCode.ts";
 import type { ModelClient } from "../model/core.ts";
 import { buildRouter, errorReply, type BoardDeps } from "./api.ts";
 import { checkRequest, EventHub, readJson, sendJson, serveStatic } from "./http.ts";
@@ -57,12 +58,33 @@ async function brandRules(env: NodeJS.ProcessEnv): Promise<{ brand: BrandRules; 
   return { brand: await loadBrandRules(FIXTURE_RULES), source: { path: null, dir, real: false } };
 }
 
-function modelClient(env: NodeJS.ProcessEnv, publicNumbers: string[]): { model: ModelClient | null; note: string } {
-  if (env.QOTTUF_MODEL_CALLS !== "enabled") {
-    return { model: null, note: "The agents that write are switched off. To run them on your Anthropic API account, set QOTTUF_MODEL_CALLS=enabled and ANTHROPIC_API_KEY in runtime/.env, then restart the board." };
+export type ModelMode = "claude-plan" | "api" | "off";
+
+/**
+ * The writers' model, from QOTTUF_MODEL_CALLS: "claude-plan" runs them through Claude Code signed in to the person's
+ * own Claude account (their plan); "enabled" runs them on an Anthropic API key (billed per use); anything else, off.
+ */
+export async function modelClient(env: NodeJS.ProcessEnv, publicNumbers: string[], run?: RunCommand): Promise<{ model: ModelClient | null; note: string; mode: ModelMode }> {
+  if (env.QOTTUF_MODEL_CALLS === "claude-plan") {
+    const bin = findClaudeBin(env);
+    if (!bin) {
+      return { mode: "claude-plan", model: null,
+        note: "Set to run on your Claude plan, but Claude Code isn't on this computer. In Terminal, install it with: curl -fsSL https://claude.ai/install.sh | bash, sign in with: claude auth login, then restart the board." };
+    }
+    const status = await claudeCodeStatus(bin, env, run);
+    if (status.problem) return { mode: "claude-plan", model: null, note: status.problem };
+    return {
+      mode: "claude-plan",
+      model: new ClaudeCodeModelClient({ bin, env, publicNumbers, ...(run ? { run } : {}), ...(env.QOTTUF_CLAUDE_MODEL ? { model: env.QOTTUF_CLAUDE_MODEL } : {}) }),
+      note: `On: the agents run on your Claude plan, through Claude Code ${status.version} signed in to your Claude account.`,
+    };
   }
-  if (!env.ANTHROPIC_API_KEY) return { model: null, note: "QOTTUF_MODEL_CALLS is enabled but ANTHROPIC_API_KEY is missing from runtime/.env." };
-  return { model: new AnthropicModelClient({ enabled: true, publicNumbers, ...(env.QOTTUF_MODEL ? { model: env.QOTTUF_MODEL } : {}) }), note: "On: the agents run on your Anthropic API account." };
+  if (env.QOTTUF_MODEL_CALLS !== "enabled") {
+    return { mode: "off", model: null,
+      note: "The agents that write are switched off. To run them on your Claude plan, set QOTTUF_MODEL_CALLS=claude-plan in runtime/.env (Claude Code installed and signed in to your Claude account); for an Anthropic API key instead, set QOTTUF_MODEL_CALLS=enabled and ANTHROPIC_API_KEY. Then restart the board." };
+  }
+  if (!env.ANTHROPIC_API_KEY) return { mode: "api", model: null, note: "QOTTUF_MODEL_CALLS is enabled but ANTHROPIC_API_KEY is missing from runtime/.env. To use your Claude plan instead, set QOTTUF_MODEL_CALLS=claude-plan." };
+  return { mode: "api", model: new AnthropicModelClient({ enabled: true, publicNumbers, ...(env.QOTTUF_MODEL ? { model: env.QOTTUF_MODEL } : {}) }), note: "On: the agents run on your Anthropic API account, billed per use." };
 }
 
 export async function startBoard(o: BoardOptions = {}): Promise<Board> {
@@ -87,7 +109,9 @@ export async function startBoard(o: BoardOptions = {}): Promise<Board> {
   const rules = await loadBusinessRules();
   const { brand, source } = await brandRules(env);
   const publicNumbers = brand.verified_figures.filter((f) => f.id === "contact" && String(f.value).replace(/\D/g, "").length >= 7).map((f) => String(f.value));
-  const m = o.model !== undefined ? { model: o.model, note: o.model ? "On (test model)." : "Off (test)." } : modelClient(env, publicNumbers);
+  const m = o.model !== undefined
+    ? { model: o.model, note: o.model ? "On (test model)." : "Off (test).", mode: (o.model ? "api" : "off") as ModelMode }
+    : await modelClient(env, publicNumbers);
   const fetchFn = o.fetchFn ?? fetch;
   // The computer's own DNS first; when it returns nothing for a name, DNS over HTTPS, so a network that blocks or
   // filters DNS reads as "check again", not as a domain with no records.
@@ -123,7 +147,7 @@ export async function startBoard(o: BoardOptions = {}): Promise<Board> {
   };
 
   const deps: BoardDeps = {
-    db, rules, brand, brandSource: source, model: m.model, modelNote: m.note, crm, hub, now, fetchFn, dns,
+    db, rules, brand, brandSource: source, model: m.model, modelNote: m.note, modelMode: m.mode, crm, hub, now, fetchFn, dns,
     website: { pages: (env.WEBSITE_PAGES ?? "").split(",").map((s) => s.trim()).filter(Boolean).length ? env.WEBSITE_PAGES!.split(",").map((s) => s.trim()).filter(Boolean) : DEFAULT_PAGES,
       mailDomain: env.MAIL_DOMAIN ?? "qottuf.com" },
     kick: () => { void work(); },

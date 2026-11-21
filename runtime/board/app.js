@@ -128,7 +128,7 @@ function statusHtml() {
   if (S.offline) return `<span class="item"><span class="dot off"></span>The board's server isn't answering. Start it again with npm run board.</span>`;
   if (!st) return `<span class="item muted">Connecting…</span>`;
   const items = [
-    [st.model.on ? "on" : "off", !st.model.on ? "Agents: writers off" : st.model.kind === "anthropic" ? "Agents: on (Anthropic API)" : "Agents: on (a stand-in, not Claude)", "connections"],
+    [st.model.on ? "on" : "off", !st.model.on ? "Agents: writers off" : st.model.kind === "claude_plan" ? "Agents: on (your Claude plan)" : st.model.kind === "anthropic" ? "Agents: on (Anthropic API)" : "Agents: on (a stand-in, not Claude)", "connections"],
     [st.crm.signedIn ? "on" : st.crm.syncedAt ? "warn" : "off", st.crm.signedIn ? `CRM: ${st.crm.user?.name || "signed in"}${st.crm.syncedAt ? `, synced ${ago(st.crm.syncedAt)}` : ""}` : st.crm.syncedAt ? `CRM: signed out, last sync ${ago(st.crm.syncedAt)}` : "CRM: not connected", "elevators"],
     [st.website.siteCheckedAt ? "on" : "warn", st.website.siteCheckedAt ? `Website: checked ${ago(st.website.siteCheckedAt)}` : "Website: not checked yet", "website"],
     [st.brand.real ? "on" : "warn", st.brand.real ? "Rulebook: Qottuf brand" : "Rulebook: test copy", "connections"],

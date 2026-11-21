@@ -40,6 +40,8 @@ export interface BoardDeps {
   brandSource: { path: string | null; dir: string | null; real: boolean };
   model: ModelClient | null;
   modelNote: string;
+  /** What runtime/.env asks for: the Claude plan through Claude Code, an API key, or off. */
+  modelMode?: "claude-plan" | "api" | "off";
   crm: CrmClient;
   hub: EventHub;
   now: () => Date;
@@ -134,7 +136,7 @@ export function buildRouter(d: BoardDeps): Router {
     const mail = await latestArtifact(d.db, "mail_domain_check");
     return {
       now: d.now().toISOString(),
-      model: { on: Boolean(d.model), kind: d.model?.kind ?? null, note: d.modelNote },
+      model: { on: Boolean(d.model), kind: d.model?.kind ?? null, mode: d.modelMode ?? (d.model ? "api" : "off"), note: d.modelNote },
       crm: { url: d.crm.baseUrl, signedIn: d.crm.signedIn, user: d.crm.user, syncedAt: lastSync ? new Date(lastSync.at as string).toISOString() : null },
       website: { pages: d.website.pages, mailDomain: d.website.mailDomain, siteCheckedAt: site?.created_at ?? null, mailCheckedAt: mail?.created_at ?? null },
       brand: d.brandSource,

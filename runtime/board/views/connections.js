@@ -3,16 +3,22 @@ import { ago, chip, fmtDateTime, h } from "../ui.js";
 
 export const needs = [];
 
+const WRITERS_STATE = { claude_plan: "your Claude plan", anthropic: "API key", scripted: "stand-in", off: "off" };
+
 const row = (name, state, tone, body) => `<div class="panel panel-pad stack"><div class="row between"><h3>${h(name)}</h3>${chip(state, tone)}</div>${body}</div>`;
 
 export function render(c) {
   const st = c.data.status;
   return `<div class="page-head"><div><h1>Connections</h1><p>The board runs on this computer and listens only to it. These are the services it reaches. Settings live in <span class="mono">runtime/.env</span>; change them and restart the board (in the desktop app: File, Restart the Board).</p></div></div>
   <div class="grid cols-2">
-    ${row("The writers: Anthropic API", st.model.on ? (st.model.kind === "anthropic" ? "on" : "stand-in") : "off", st.model.on && st.model.kind === "anthropic" ? "ok" : "warn", `<p class="m0">${h(st.model.note)}</p>
-      <p class="small muted m0">Agents that write (case studies, briefs, debriefs, bilingual edits, LinkedIn posts, elevator content, web pages) call Claude through your Anthropic API account and are billed to it. Each run has a token budget; the board shows the tokens each run used. Personal data is removed before anything is sent. Code agents (website and mail checks, the board pack, renewals) never call a model.</p>
+    ${row("The writers: Claude", WRITERS_STATE[st.model.on ? st.model.kind : "off"] ?? "on", st.model.on && st.model.kind !== "scripted" ? "ok" : "warn", `<p class="m0">${h(st.model.note)}</p>
+      <p class="small muted m0">Agents that write (case studies, briefs, debriefs, bilingual edits, LinkedIn posts, elevator content, web pages) call Claude, one of two ways, set in <span class="mono">runtime/.env</span>.</p>
+      <p class="small m0"><strong>Your Claude plan.</strong> Claude Code on this computer, signed in to your own Claude account, runs each call, so the writers count against your plan's usage and there is no API bill. It is for your own work: a colleague signs in to Claude Code on their own computer, with their own account.</p>
+      <pre class="mono code">QOTTUF_MODEL_CALLS=claude-plan</pre>
+      <p class="small m0"><strong>An Anthropic API key</strong>, billed per use.</p>
       <pre class="mono code">QOTTUF_MODEL_CALLS=enabled
-ANTHROPIC_API_KEY=your key from console.anthropic.com</pre>`)}
+ANTHROPIC_API_KEY=your key from console.anthropic.com</pre>
+      <p class="small muted m0">Either way, personal data is removed before anything is sent, each run has a token budget, and the code agents (website and mail checks, the board pack, renewals) never call a model. On a Pro or Max plan, Claude's privacy settings decide whether your chats and coding sessions help train Claude; check them before company material goes through.</p>`)}
     ${row("The elevator CRM", st.crm.signedIn ? "signed in" : "not signed in", st.crm.signedIn ? "ok" : "warn", `<p class="m0">${st.crm.signedIn ? `Signed in as ${h(st.crm.user?.name ?? "")} (${h(st.crm.user?.role ?? "")}).` : "Sign in from the Elevators page."} ${st.crm.syncedAt ? `Last sync ${h(ago(st.crm.syncedAt))}.` : ""}</p>
       <p class="small muted m0">Read-only: the board keeps the session in memory, never stores the password, never writes to the CRM, and copies quotations without customer names, phone numbers or emails. While signed in, it syncs every 10 minutes. Use a coordinator account: it sees the whole pipeline and can't change a quotation.</p>
       <p class="small mono m0">${h(st.crm.url)}</p><div><button class="btn small" data-act="go" data-view="elevators">Open Elevators</button></div>`)}
